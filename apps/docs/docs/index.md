@@ -1,18 +1,24 @@
 ---
-title: Home
+title: Главная
 slug: /
 sidebar_position: 1
 ---
 
 # Fishing Docs
 
-Welcome to project documentation.
+Добро пожаловать в документацию проекта.
 
-`apps/docs/docs/*` is the source of truth for current project state.
-Any fixed/merged change must be reflected here in the same delivery cycle.
+`apps/docs/docs/*` — источник истины о текущем состоянии проекта.
+Любое исправление или изменение, попавшее в кодовую базу, должно быть отражено здесь в рамках того же цикла работ.
 
-## Sections
+## Разделы
 
-- [MVP Scope](mvp-scope.md)
-- [Architecture](architecture.md)
-- [Shared Code Plan](shared-code-plan.md)
+- [Объём MVP](mvp-scope.md)
+- [Архитектура](architecture.md)
+- [План разделяемого кода](shared-code-plan.md)
+
+## Быстрые команды
+
+- `pnpm docker:up` — поднять сервисы с билдом
+- `pnpm docker:dev` — поднять сервисы и включить автоматический watch-подхват изменений
+- `pnpm docker:rebuild` — принудительно пересобрать и пересоздать контейнеры

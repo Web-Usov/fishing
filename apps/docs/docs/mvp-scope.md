@@ -1,35 +1,37 @@
 ---
-title: MVP scope
+title: Объём MVP
 sidebar_position: 3
 ---
 
-# MVP scope
+# Объём MVP
 
-Current implementation includes a working map-first forecast MVP:
+Текущая реализация включает рабочий map-first MVP прогноза:
 
-- Real web map (Yandex Maps provider via adapter layer)
-- Coordinate-first interaction (user clicks any point)
-- 7-day forecast calculation for selected coordinate
-- Forecast refresh keeps previous data visible while loading new point (optimistic UX)
-- URL-shareable coordinate state (`?lat=...&lng=...`)
-- URL update preserves scroll position to reduce page jump on map click
-- Per-day detailed summary panel
-- Expandable factor-impact rows with per-factor explanation
-- Theme modes: light / dark / system (default system)
-- Locale modes: auto / ru / en (browser locale auto-detection + explicit user choice)
-- Browser geolocation action for quick coordinate selection
-- Waterbody type resolution attempts real hydro geocode first, then falls back
-- Global non-production runtime info block for API endpoint/base URL is visible on all routes
-- Direct open/refresh of `?lat=...&lng=...` preserves coordinates (no query wipe)
+- Реальная web-карта (провайдер Яндекс Карт через слой адаптеров)
+- Coordinate-first взаимодействие (пользователь кликает любую точку)
+- Расчёт 7-дневного прогноза для выбранной координаты
+- Для расчёта используется реальный 7-дневный прогноз погоды (Open-Meteo) с fallback на оценочную модель при недоступности внешнего источника
+- Обновление прогноза сохраняет предыдущие данные во время загрузки новой точки (оптимистичный UX)
+- Состояние координат шарится через URL (`?lat=...&lng=...`)
+- При обновлении URL сохраняется прокрутка, чтобы уменьшить визуальный «прыжок»
+- Детальная сводка по каждому дню
+- Раскрывающиеся строки факторов с объяснением влияния
+- Режимы темы: light / dark / system (по умолчанию system)
+- Режимы локали: auto / ru / en (автоопределение по браузеру + явный выбор)
+- Действие геолокации в браузере для быстрого выбора точки
+- Определение типа водоёма сначала пытается использовать hydro-геокод, затем fallback
+- Глобальный non-production блок runtime info (endpoint API/base URL) виден на всех маршрутах
+- Прямое открытие/обновление `?lat=...&lng=...` сохраняет координаты (без сброса query)
+- Добавлены аккуратные состояния интерфейса: отдельные empty/loading/error блоки и кнопка retry при критической ошибке без данных
 
-## MVP operational notes
+## Эксплуатационные заметки MVP
 
-- Main local run mode: Docker Compose from repository root.
-- LAN usage is supported (web/admin/api/expo exposed on dedicated ports).
-- Hydration-safe behavior is required for web UI pieces that depend on browser-only values.
+- Основной локальный режим запуска: Docker Compose из корня репозитория.
+- Использование по LAN поддерживается (web/admin/api/expo доступны на отдельных портах).
+- Для частей web UI, зависящих от browser-only значений, требуется hydration-safe поведение.
 
-Out of scope for current MVP:
+Вне текущего объёма MVP:
 
-- social feed / posts / recommendations
-- full catch journal workflows
-- production-grade weather ingestion pipeline
+- социальная лента / посты / рекомендации
+- полноценные сценарии журнала улова
+- production-grade пайплайн загрузки погодных данных

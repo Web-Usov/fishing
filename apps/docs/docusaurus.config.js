@@ -3,7 +3,7 @@
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'Fishing Docs',
-  tagline: 'Project documentation for Fishing monorepo',
+  tagline: 'Документация монорепозитория Fishing',
   url: 'http://localhost',
   baseUrl: '/',
   onBrokenLinks: 'throw',

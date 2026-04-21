@@ -1,50 +1,61 @@
 ---
-title: Architecture
+title: Архитектура
 sidebar_position: 2
 ---
 
-# Architecture
+# Архитектура
 
-- apps/api: NestJS HTTP API for forecast and future map/favorites/auth modules
-- apps/mobile: Expo mobile shell for map-first MVP
-- apps/web: public web app with real Yandex map, 7-day forecast flow, URL-state and theme system
-- apps/admin: admin shell
-- packages/domain-bite-forecast: pure forecast engine with tests
-- packages/shared-zod: shared contracts
-- packages/domain-geo: geo primitives and helpers
-- packages/shared-ui: cross-platform UI primitives for web + mobile
-- apps/web map layer: provider adapter pattern (`yandex`/`google`) with MVP provider `yandex`
-- apps/web locale layer: app-level locale provider with dictionary-based translations (`ru`/`en`) and auto locale mode
+- apps/api: HTTP API на NestJS для прогноза и будущих модулей карты/избранного/аутентификации
+- apps/mobile: мобильная оболочка Expo для map-first MVP
+- apps/web: публичное web-приложение с реальной картой Яндекса, 7-дневным прогнозом, URL-состоянием и темами
+- apps/admin: административная оболочка
+- packages/domain-bite-forecast: чистый движок расчёта прогноза с тестами
+- packages/shared-zod: общие контракты
+- packages/api-client: клиент API прогноза и адаптер получения реальной 7-дневной погоды
+- packages/domain-geo: геопримитивы и вспомогательные функции
+- packages/shared-ui: кроссплатформенные UI-примитивы для web + mobile
+- слой карт в apps/web: адаптерный паттерн провайдеров (`yandex`/`google`), MVP-провайдер — `yandex`
+- слой локализации в apps/web: провайдер локали приложения и словари переводов (`ru`/`en`) с режимом auto
 
-## Deployment and LAN
+## Развёртывание и LAN
 
-- Primary local orchestration is Docker Compose from repository root.
-- Typical LAN entry points:
+- Основной локальный способ оркестрации — Docker Compose из корня репозитория.
+- Старт/обновление контейнеров:
+  - `pnpm docker:up` — первичный запуск с билдом
+  - `pnpm docker:rebuild` — принудительная пересборка и пересоздание контейнеров
+  - `pnpm docker:dev` — запуск + автоматический watch-режим синхронизации
+- Типовые LAN-точки входа:
   - web: `http://<host-ip>:3010`
   - admin: `http://<host-ip>:3012`
   - api: `http://<host-ip>:3001`
   - expo: `http://<host-ip>:8081`
-- Web resolves API host from current browser host for LAN compatibility.
-- Geolocation in browsers requires secure context (`https://...`) or `http://localhost`.
+- Web-часть определяет хост API из текущего browser-host для совместимости с LAN.
+- Геолокация в браузере требует защищённого контекста (`https://...`) или `http://localhost`.
+- В `docker-compose.yaml` включён `develop.watch` для `api/web/admin/mobile/docs`:
+  - изменения исходников синхронизируются в контейнеры автоматически,
+  - изменения lockfile/package.json триггерят автоматический rebuild нужного сервиса.
 
-## Hydration safety (web)
+## Безопасная гидратация (web)
 
-- Avoid SSR/CSR text mismatch by keeping initial render deterministic.
-- Browser-only sources (`window`, `localStorage`, `navigator`, `location`) must be read after mount.
-- Locale/theme/runtime-info UI should render stable initial placeholders and then hydrate client-specific values.
-- URL state sync (`lat/lng`) must start only after initial URL parse to avoid accidental query reset on first render.
+- Избегайте рассинхронизации SSR/CSR: первый рендер должен быть детерминированным.
+- Браузерные источники (`window`, `localStorage`, `navigator`, `location`) читаются только после mount.
+- Блоки локали/темы/runtime-info должны сначала рендерить стабильные значения, затем гидратировать клиентские.
+- Синхронизация URL-состояния (`lat/lng`) должна стартовать только после первичного чтения URL, чтобы избежать случайного сброса query-параметров.
 
-## Notes
+## Примечания
 
-- API exposes CORS headers for MVP LAN access.
-- Web demo resolves API host from current browser host to support local network testing.
-- Web supports 3 theme modes (light/dark/system) with system default.
-- Web supports 3 locale modes (auto/ru/en) with browser-locale detection for auto mode.
-- Web map selection is coordinate-first (no predefined points).
-- Web forecast refresh is optimistic: previous forecast data remains visible while next request is loading.
-- Web URL updates keep scroll position to prevent visual jump on map click.
-- Web persists selected coordinate via query params (`lat`, `lng`).
-- Web attempts waterbody detection from Yandex geocode (`kind: hydro`) and falls back to heuristic type.
-- Web exposes a global runtime info block in non-production mode (API endpoint + resolved base URL).
-- Web map has geolocation action; browser secure-context policy applies.
-- Mobile Expo monorepo setup uses custom metro config with workspace watch folders.
+- API отдаёт CORS-заголовки для MVP-доступа по LAN.
+- Web-демо определяет хост API по текущему browser-host для локального сетевого тестирования.
+- Web поддерживает 3 режима темы (light/dark/system), по умолчанию — system.
+- Web поддерживает 3 режима локали (auto/ru/en), в auto используется определение локали браузера.
+- Реальная погода берётся из Open-Meteo (`temperature_2m_mean`, `pressure_msl_mean`, `wind_speed_10m_mean`, `cloud_cover_mean`, `precipitation_sum`) с `wind_speed_unit=ms`.
+- Поле `moonIlluminationPct` в текущем forecast API Open-Meteo не доступно напрямую, поэтому используется нейтральный fallback (50).
+- Выбор точки на карте — coordinate-first (без предопределённых точек).
+- Обновление прогноза оптимистичное: предыдущие данные остаются видимыми, пока грузятся новые.
+- Для прогнозной панели реализованы отдельные empty/loading/error состояния и retry-сценарий при критической ошибке без загруженных дней.
+- При обновлении URL сохраняется позиция прокрутки, чтобы избежать визуального «прыжка».
+- Выбранные координаты сохраняются в query-параметрах (`lat`, `lng`).
+- Web пытается определить тип водоёма через геокодер Яндекса (`kind: hydro`), затем применяет эвристику как fallback.
+- В non-production режиме отображается глобальный блок runtime info (endpoint API + resolved base URL).
+- На карте есть действие геолокации; применяются ограничения secure-context политики браузера.
+- Мобильная часть Expo в монорепозитории использует кастомный metro-config с watch-папками workspace.

@@ -1,31 +1,31 @@
 ---
-title: Shared code plan (web + mobile)
+title: План разделяемого кода (web + mobile)
 sidebar_position: 4
 ---
 
-# Shared code plan (web + mobile)
+# План разделяемого кода (web + mobile)
 
-## Goal
+## Цель
 
-Maximize shared code between Next.js web and Expo mobile without forcing identical screens where platform UX differs.
+Максимально переиспользовать код между Next.js web и Expo mobile, не заставляя платформы иметь одинаковые экраны там, где UX должен отличаться.
 
-## Current state
+## Текущее состояние
 
-- Shared domain/contracts/client:
+- Общие domain/contracts/client пакеты:
   - `packages/domain-geo`
   - `packages/domain-bite-forecast`
   - `packages/shared-zod`
   - `packages/api-client`
-- Shared UI primitives:
+- Общие UI-примитивы:
   - `packages/shared-ui` (new)
     - `SharedCard`
     - `SharedHeading`
     - `SharedText`
-- Web map adapters:
+- Адаптеры карт в web:
   - `apps/web/app/components/map/adapter-factory.ts`
   - `apps/web/app/components/map/yandex-adapter.ts` (MVP provider)
   - `apps/web/app/components/map/google-adapter.ts` (stub for future provider)
-- Web UX state:
+- Состояние и UX в web:
   - URL-shared coordinate state (`lat/lng` query params)
   - 7-day forecast list + per-day details panel
   - theme modes (`light`, `dark`, `system`)
@@ -35,45 +35,48 @@ Maximize shared code between Next.js web and Expo mobile without forcing identic
   - expandable factor-impact details in forecast panel
   - global non-production runtime info block (endpoint/base URL)
   - waterbody type from hydro geocode with fallback strategy
+  - real-weather prefetch (Open-Meteo) with fallback strategy to local weather estimation
   - hydration-safe client initialization for locale/runtime/url-sensitive UI
+  - typed i18n dictionary keys (`LocaleKey`) to avoid drift between UI and translation catalog
 
-## Sharing boundaries
+## Границы переиспользования
 
-### Fully shared
+### Полностью разделяемое
 
-- business rules
-- data contracts
-- API client
-- formatting/validation helpers
-- base UI primitives
+- бизнес-правила
+- контракты данных
+- API-клиент
+- форматирование/валидация
+- базовые UI-примитивы
 
-### Platform-specific
+### Платформенно-специфичное
 
-- routing/navigation
-- map rendering and gestures
-- page-level layout and adaptive UX
-- platform-only integrations
-- browser geolocation permissions/secure-context constraints
-- browser locale detection and user locale preference persistence
-- map-provider geocode integration details (Yandex-specific behavior)
+- роутинг/навигация
+- рендеринг карт и жесты
+- экранный layout и адаптивный UX
+- платформенные интеграции
+- разрешения геолокации и secure-context ограничения браузера
+- определение локали браузера и хранение пользовательской локали
+- детали интеграции геокодинга конкретного провайдера карт (поведение Яндекса)
 
-## Implementation pattern
+## Паттерн реализации
 
-1. Build feature logic in shared packages first.
-2. Create/extend UI primitives in `packages/shared-ui`.
-3. Compose screens separately in `apps/web` and `apps/mobile`.
-4. Keep adapters thin and avoid platform conditionals in domain code.
-5. For web-only browser APIs, keep first render deterministic and move browser reads to post-mount effects.
+1. Сначала реализовывать фичевую логику в shared-пакетах.
+2. Создавать/расширять UI-примитивы в `packages/shared-ui`.
+3. Собирать экраны отдельно в `apps/web` и `apps/mobile`.
+4. Держать адаптеры тонкими и не тянуть platform-conditionals в domain-код.
+5. Для browser-only API обеспечивать детерминированный первый рендер и переносить чтение браузерных данных в post-mount эффекты.
+6. Внешние погодные поля сначала нормализовать в API-client слой, затем передавать в расчёт прогноза в стабильном контракте `WeatherSnapshot`.
 
-## Documentation policy
+## Политика документации
 
-- Source of truth for current project state: `apps/docs/docs/*`.
-- After every fixed/merged change, update relevant docs in this folder in the same work cycle.
-- Root-level docs (if present) may summarize, but must not drift from `apps/docs/docs/*`.
+- Источник истины о текущем состоянии проекта: `apps/docs/docs/*`.
+- После каждого исправления/изменения необходимо обновлять релевантные документы в этой папке в том же цикле работ.
+- Root-level документы (если есть) могут быть краткими, но не должны расходиться с `apps/docs/docs/*`.
 
-## Next milestones
+## Следующие этапы
 
-1. Add shared forecast widgets (`ForecastScoreCard`, `FactorList`).
-2. Extract shared loading/error states from web demo to `shared-ui`.
-3. Introduce shared hooks package (`packages/shared-hooks`) for query/data state.
-4. Align visual tokens (colors/spacing/typography) across web/mobile.
+1. Добавить общие виджеты прогноза (`ForecastScoreCard`, `FactorList`).
+2. Вынести общие loading/error состояния из web-демо в `shared-ui`.
+3. Ввести пакет shared hooks (`packages/shared-hooks`) для query/data состояния.
+4. Синхронизировать визуальные токены (цвета/отступы/типографика) между web/mobile.
