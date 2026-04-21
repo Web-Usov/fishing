@@ -10,7 +10,12 @@
     "typecheck": "turbo run typecheck",
     "docs:install": "pnpm install --filter @fishing/docs...",
     "docs:serve": "pnpm --filter @fishing/docs docs:serve",
-    "docs:build": "pnpm --filter @fishing/docs docs:build"
+    "docs:build": "pnpm --filter @fishing/docs docs:build",
+    "docker:up": "docker compose up -d --build",
+    "docker:down": "docker compose down",
+    "docker:rebuild": "docker compose up -d --build --force-recreate",
+    "docker:watch": "docker compose watch",
+    "docker:dev": "docker compose up -d --build && docker compose watch"
   },
   "devDependencies": {
     "@types/react": "^19.2.2",

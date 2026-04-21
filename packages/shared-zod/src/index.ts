@@ -40,3 +40,4 @@ export const biteForecastResponseSchema = z.object({
 export type BiteForecastRequest = z.infer<typeof biteForecastRequestSchema>;
 export type BiteForecastResponse = z.infer<typeof biteForecastResponseSchema>;
 export type BiteForecastFactor = z.infer<typeof biteForecastFactorSchema>;
+export type WeatherSnapshot = z.infer<typeof weatherSnapshotSchema>;

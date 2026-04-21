@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { fetchBiteForecast } from '@fishing/api-client';
+import { fetchBiteForecast, fetchSevenDayWeather } from '@fishing/api-client';
 
 import { useLocale } from './locale/LocaleProvider';
 import { ProviderMap } from './map/ProviderMap';
@@ -64,6 +64,7 @@ type ForecastState = {
   loading: boolean;
   error: string | null;
   days: DayForecast[];
+  weatherSource: 'real' | 'fallback' | null;
 };
 
 const MAP_PROVIDER: MapProvider = process.env.NEXT_PUBLIC_MAP_PROVIDER === 'google' ? 'google' : 'yandex';
@@ -173,6 +174,7 @@ function estimateWeatherByCoordinates(lat: number, lng: number, dayOffset: numbe
   };
 }
 
+
 async function resolveWaterbodyTypeFromReality(location: SelectedLocation): Promise<WaterbodyType | null> {
   if (typeof window === 'undefined' || !window.ymaps?.geocode) {
     return null;
@@ -203,13 +205,18 @@ async function resolveWaterbodyTypeFromReality(location: SelectedLocation): Prom
   return null;
 }
 
-function buildPayload(location: SelectedLocation, timestamp: Date, dayOffset: number, waterbodyType: WaterbodyType): BiteForecastRequest {
+function buildPayload(
+  location: SelectedLocation,
+  timestamp: Date,
+  weather: WeatherSnapshot,
+  waterbodyType: WaterbodyType,
+): BiteForecastRequest {
   return {
     point: { lat: location.lat, lng: location.lng },
     timestamp: timestamp.toISOString(),
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     waterbodyType,
-    weather: estimateWeatherByCoordinates(location.lat, location.lng, dayOffset),
+    weather,
   };
 }
 
@@ -230,6 +237,7 @@ export function FishingDemo() {
     loading: false,
     error: null,
     days: [],
+    weatherSource: null,
   });
   const [selectedDayIndex, setSelectedDayIndex] = useState(0);
   const [expandedFactorId, setExpandedFactorId] = useState<string | null>(null);
@@ -279,12 +287,15 @@ export function FishingDemo() {
       try {
         const waterbodyType = (await resolveWaterbodyTypeFromReality(location)) ?? 'lake';
         const now = new Date();
+        const realWeather = await fetchSevenDayWeather(location);
+        const weatherSource: ForecastState['weatherSource'] = realWeather ? 'real' : 'fallback';
 
         const requests = Array.from({ length: 7 }, async (_, dayOffset) => {
           const date = new Date(now);
           date.setDate(now.getDate() + dayOffset);
 
-          const payload = buildPayload(location, date, dayOffset, waterbodyType);
+          const weather = realWeather?.[dayOffset] ?? estimateWeatherByCoordinates(location.lat, location.lng, dayOffset);
+          const payload = buildPayload(location, date, weather, waterbodyType);
           const response = await fetchBiteForecast(apiBaseUrl, payload);
 
           return {
@@ -299,7 +310,7 @@ export function FishingDemo() {
 
         const days = await Promise.all(requests);
         if (!disposed) {
-          setForecastState({ loading: false, error: null, days });
+          setForecastState({ loading: false, error: null, days, weatherSource });
           setSelectedDayIndex((current) => (current < days.length ? current : 0));
           setExpandedFactorId(null);
         }
@@ -309,6 +320,7 @@ export function FishingDemo() {
             loading: false,
             error: locale === 'ru' ? 'Не удалось получить прогноз на 7 дней. Проверьте API и CORS.' : 'Failed to load 7-day forecast. Check API and CORS.',
             days: current.days,
+            weatherSource: current.weatherSource,
           }));
         }
       }
@@ -414,15 +426,50 @@ export function FishingDemo() {
         </div>
 
         {!selectedLocation ? (
-          <InlineNotice text={t('pick_point_first')} />
+          <StateCard title={t('state_empty_title')} body={t('state_empty_body')} />
         ) : (
           <div style={{ color: 'var(--text-muted)', fontSize: 13 }}>
             {t('coordinates')}: <strong>{selectedLocation.lat.toFixed(5)}, {selectedLocation.lng.toFixed(5)}</strong>
           </div>
         )}
 
-        {forecastState.loading ? <InlineNotice text={forecastState.days.length > 0 ? t('updating_forecast') : t('loading_forecast')} /> : null}
-        {forecastState.error ? <InlineNotice text={forecastState.error} tone="error" /> : null}
+        {forecastState.weatherSource ? (
+          <div style={{ color: 'var(--text-muted)', fontSize: 12 }}>
+            {t('weather_source')}: <strong>{forecastState.weatherSource === 'real' ? t('real_weather') : t('fallback_weather')}</strong>
+          </div>
+        ) : null}
+
+        {forecastState.loading && forecastState.days.length === 0 ? <StateCard title={t('state_loading_title')} body={t('state_loading_body')} /> : null}
+        {forecastState.loading && forecastState.days.length > 0 ? <InlineNotice text={t('updating_forecast')} /> : null}
+
+        {forecastState.error && forecastState.days.length === 0 ? (
+          <StateCard
+            title={t('state_error_title')}
+            body={forecastState.error}
+            tone="error"
+            action={
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedLocation((current) => (current ? { ...current } : current));
+                }}
+                style={{
+                  border: '1px solid var(--border)',
+                  borderRadius: 8,
+                  background: 'var(--panel)',
+                  color: 'var(--text)',
+                  fontSize: 12,
+                  padding: '6px 10px',
+                  cursor: 'pointer',
+                }}
+              >
+                {t('retry')}
+              </button>
+            }
+          />
+        ) : null}
+
+        {forecastState.error && forecastState.days.length > 0 ? <InlineNotice text={forecastState.error} tone="error" /> : null}
 
         {forecastState.days.length > 0 ? (
           <div style={{ display: 'grid', gap: 8 }}>
@@ -564,6 +611,35 @@ function MiniDetail({ label, value }: { label: string; value: string }) {
     >
       <div style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase' }}>{label}</div>
       <div style={{ marginTop: 4, fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{value}</div>
+    </div>
+  );
+}
+
+function StateCard({
+  title,
+  body,
+  tone = 'neutral',
+  action,
+}: {
+  title: string;
+  body: string;
+  tone?: 'neutral' | 'error';
+  action?: React.ReactNode;
+}) {
+  return (
+    <div
+      style={{
+        borderRadius: 12,
+        border: tone === 'error' ? '1px solid var(--danger)' : '1px solid var(--border)',
+        background: tone === 'error' ? 'rgba(185,28,28,.12)' : 'var(--panel-muted)',
+        padding: 12,
+        display: 'grid',
+        gap: 6,
+      }}
+    >
+      <strong style={{ color: tone === 'error' ? 'var(--danger)' : 'var(--text)', fontSize: 13 }}>{title}</strong>
+      <div style={{ color: tone === 'error' ? 'var(--danger)' : 'var(--text-muted)', fontSize: 13 }}>{body}</div>
+      {action ? <div>{action}</div> : null}
     </div>
   );
 }

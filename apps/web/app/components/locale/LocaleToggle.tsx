@@ -1,8 +1,9 @@
 "use client";
 
 import { useLocale } from './LocaleProvider';
+import type { LocaleKey } from './LocaleProvider';
 
-const options: Array<{ value: 'auto' | 'ru' | 'en'; labelKey: 'locale_auto' | 'locale_ru' | 'locale_en' }> = [
+const options: Array<{ value: 'auto' | 'ru' | 'en'; labelKey: LocaleKey }> = [
   { value: 'auto', labelKey: 'locale_auto' },
   { value: 'ru', labelKey: 'locale_ru' },
   { value: 'en', labelKey: 'locale_en' },

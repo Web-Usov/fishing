@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 export type AppLocale = 'ru' | 'en';
 type LocaleMode = 'auto' | AppLocale;
@@ -11,7 +11,7 @@ type LocaleContextValue = {
   locale: AppLocale;
   mode: LocaleMode;
   setMode: (mode: LocaleMode) => void;
-  t: (key: keyof typeof dictionary) => string;
+  t: (key: LocaleKey) => string;
 };
 
 const STORAGE_KEY = 'fishing-locale-mode';
@@ -43,7 +43,6 @@ const dictionary = {
   pick_point_first: { ru: 'Сначала выберите точку кликом на карте.', en: 'Pick a point on the map first.' },
   updating_forecast: { ru: 'Обновляем прогноз…', en: 'Updating forecast…' },
   coordinates: { ru: 'Координаты', en: 'Coordinates' },
-  loading_7d: { ru: 'Считаем прогноз на 7 дней…', en: 'Calculating 7-day forecast…' },
   day_details: { ru: 'Детали дня', en: 'Day details' },
   confidence: { ru: 'Уверенность', en: 'Confidence' },
   waterbody_type: { ru: 'Тип водоёма', en: 'Waterbody type' },
@@ -79,7 +78,24 @@ const dictionary = {
   loading_forecast: { ru: 'Считаем прогноз на 7 дней…', en: 'Calculating 7-day forecast…' },
   api_endpoint: { ru: 'API', en: 'API' },
   base_url: { ru: 'Base URL', en: 'Base URL' },
+  real_weather: { ru: 'Реальная погода', en: 'Real weather' },
+  fallback_weather: { ru: 'Оценочная погода (fallback)', en: 'Estimated weather (fallback)' },
+  weather_source: { ru: 'Источник погоды', en: 'Weather source' },
+  state_empty_title: { ru: 'Выберите точку на карте', en: 'Pick a point on the map' },
+  state_empty_body: {
+    ru: 'Кликните по карте, и мы построим прогноз на 7 дней по выбранной координате.',
+    en: 'Click on the map and we will build a 7-day forecast for selected coordinates.',
+  },
+  state_loading_title: { ru: 'Собираем погодные данные', en: 'Collecting weather data' },
+  state_loading_body: {
+    ru: 'Получаем 7-дневный прогноз и рассчитываем итоговую оценку клёва…',
+    en: 'Fetching 7-day forecast and calculating bite score…',
+  },
+  state_error_title: { ru: 'Не удалось обновить прогноз', en: 'Failed to refresh forecast' },
+  retry: { ru: 'Повторить', en: 'Retry' },
 } satisfies Dictionary;
+
+export type LocaleKey = keyof typeof dictionary;
 
 const LocaleContext = createContext<LocaleContextValue | null>(null);
 
@@ -107,14 +123,14 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
 
   const locale = mode === 'auto' ? autoLocale : mode;
 
-  const setMode = (nextMode: LocaleMode) => {
+  const setMode = useCallback((nextMode: LocaleMode) => {
     setModeState(nextMode);
     window.localStorage.setItem(STORAGE_KEY, nextMode);
 
     if (nextMode === 'auto') {
       setAutoLocale(resolveBrowserLocale());
     }
-  };
+  }, []);
 
   const value = useMemo<LocaleContextValue>(
     () => ({
@@ -123,7 +139,7 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
       setMode,
       t: (key) => dictionary[key][locale],
     }),
-    [locale, mode],
+    [locale, mode, setMode],
   );
 
   return <LocaleContext.Provider value={value}>{children}</LocaleContext.Provider>;
