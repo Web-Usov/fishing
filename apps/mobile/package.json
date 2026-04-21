@@ -1,0 +1,22 @@
+{
+  "name": "@fishing/mobile",
+  "private": true,
+  "main": "./index.js",
+  "scripts": {
+    "build": "node -e \"console.log('Expo build scaffold ready')\"",
+    "dev": "expo start",
+    "test": "node -e \"console.log('No tests yet for mobile')\"",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@fishing/shared-ui": "workspace:*",
+    "expo": "^54.0.13",
+    "react": "^19.1.1",
+    "react-native": "^0.81.4",
+    "react-native-web": "^0.21.2"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.13"
+  }
+}

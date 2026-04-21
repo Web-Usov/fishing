@@ -1,0 +1,20 @@
+{
+  "name": "@fishing/web",
+  "private": true,
+  "scripts": {
+    "build": "next build",
+    "dev": "next dev",
+    "test": "node -e \"console.log('No tests yet for web')\"",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@fishing/api-client": "workspace:*",
+    "@fishing/shared-ui": "workspace:*",
+    "next": "^15.5.4",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "react-native-web": "^0.21.2",
+    "zod": "^4.1.11"
+  }
+}

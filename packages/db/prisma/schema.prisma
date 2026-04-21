@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String          @id @default(cuid())
+  email      String          @unique
+  createdAt  DateTime        @default(now())
+  favorites  FavoritePoint[]
+}
+
+model Waterbody {
+  id          String         @id @default(cuid())
+  name        String
+  type        String
+  centerLat   Float
+  centerLng   Float
+  points      FishingPoint[]
+  createdAt   DateTime       @default(now())
+}
+
+model FishingPoint {
+  id            String          @id @default(cuid())
+  waterbodyId   String
+  name          String
+  lat           Float
+  lng           Float
+  depthApprox   Float?
+  isActive      Boolean         @default(true)
+  waterbody     Waterbody       @relation(fields: [waterbodyId], references: [id], onDelete: Cascade)
+  favorites     FavoritePoint[]
+  forecasts     ForecastSnapshot[]
+  createdAt     DateTime        @default(now())
+}
+
+model FavoritePoint {
+  userId   String
+  pointId  String
+  user     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  point    FishingPoint @relation(fields: [pointId], references: [id], onDelete: Cascade)
+
+  @@id([userId, pointId])
+}
+
+model WeatherSnapshot {
+  id                  String   @id @default(cuid())
+  pressureHpa         Float
+  airTemperatureC     Float
+  windSpeedMps        Float
+  cloudCoverPct       Float
+  precipitationMm     Float
+  moonIlluminationPct Float
+  createdAt           DateTime @default(now())
+}
+
+model ForecastSnapshot {
+  id          String   @id @default(cuid())
+  pointId     String
+  score       Int
+  level       String
+  confidence  String
+  explanation String
+  createdAt   DateTime @default(now())
+  point       FishingPoint @relation(fields: [pointId], references: [id], onDelete: Cascade)
+}

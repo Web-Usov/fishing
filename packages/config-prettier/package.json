@@ -1,0 +1,6 @@
+{
+  "name": "@fishing/config-prettier",
+  "version": "0.0.0",
+  "private": true,
+  "main": "prettier.config.cjs"
+}

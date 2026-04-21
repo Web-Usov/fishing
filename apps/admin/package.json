@@ -1,0 +1,17 @@
+{
+  "name": "@fishing/admin",
+  "private": true,
+  "scripts": {
+    "build": "next build",
+    "dev": "next dev -p 3002",
+    "test": "node -e \"console.log('No tests yet for admin')\"",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@fishing/ui": "workspace:*",
+    "next": "^15.5.4",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  }
+}

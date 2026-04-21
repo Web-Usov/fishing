@@ -1,0 +1,10 @@
+node_modules
+.turbo
+.next
+dist
+coverage
+.expo
+.env
+pnpm-lock.yaml
+site
+apps/docs/.docusaurus

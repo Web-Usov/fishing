@@ -1,0 +1,96 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: fishing-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: fishing
+      POSTGRES_USER: fishing
+      POSTGRES_PASSWORD: fishing
+    ports:
+      - "5433:5432"
+    volumes:
+      - fishing-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fishing -d fishing"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.monorepo
+    container_name: fishing-api
+    restart: unless-stopped
+    command: pnpm --filter @fishing/api dev
+    environment:
+      DATABASE_URL: postgresql://fishing:fishing@postgres:5432/fishing
+      PORT: 3001
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.monorepo
+    container_name: fishing-web
+    restart: unless-stopped
+    command: pnpm --filter @fishing/web exec next dev -H 0.0.0.0 -p 3000
+    env_file:
+      - ./apps/web/.env
+    environment:
+      NEXT_PUBLIC_MAP_PROVIDER: ${NEXT_PUBLIC_MAP_PROVIDER:-yandex}
+    ports:
+      - "3010:3000"
+    depends_on:
+      - api
+
+  admin:
+    build:
+      context: .
+      dockerfile: Dockerfile.monorepo
+    container_name: fishing-admin
+    restart: unless-stopped
+    command: pnpm --filter @fishing/admin exec next dev -H 0.0.0.0 -p 3002
+    ports:
+      - "3012:3002"
+    depends_on:
+      - api
+
+  mobile:
+    build:
+      context: .
+      dockerfile: Dockerfile.monorepo
+    container_name: fishing-mobile
+    restart: unless-stopped
+    command: pnpm --filter @fishing/mobile exec expo start --host lan --port 8081
+    environment:
+      EXPO_NO_TELEMETRY: "1"
+      CHOKIDAR_USEPOLLING: "true"
+      CI: "1"
+    ports:
+      - "8081:8081"
+      - "19000:19000"
+      - "19001:19001"
+      - "19002:19002"
+    stdin_open: true
+    tty: true
+    depends_on:
+      - api
+
+  docs:
+    build:
+      context: .
+      dockerfile: Dockerfile.monorepo
+    container_name: fishing-docs
+    restart: unless-stopped
+    command: pnpm --filter @fishing/docs docs:serve
+    ports:
+      - "8000:8000"
+
+volumes:
+  fishing-postgres-data:

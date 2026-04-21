@@ -1,0 +1,23 @@
+{
+  "name": "fishing-monorepo",
+  "private": true,
+  "packageManager": "pnpm@10.17.1",
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev --parallel",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "docs:install": "pnpm install --filter @fishing/docs...",
+    "docs:serve": "pnpm --filter @fishing/docs docs:serve",
+    "docs:build": "pnpm --filter @fishing/docs docs:build"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "@types/node": "^24.6.0",
+    "turbo": "^2.1.3",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}
