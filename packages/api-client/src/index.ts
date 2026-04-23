@@ -62,23 +62,36 @@ export function mapOpenMeteoToWeatherSeries(payload: OpenMeteoDailyResponse): We
   );
 }
 
-export async function fetchSevenDayWeather(point: { lat: number; lng: number }): Promise<WeatherSnapshot[] | null> {
-  const params = new URLSearchParams({
-    latitude: point.lat.toString(),
-    longitude: point.lng.toString(),
-    timezone: 'auto',
-    forecast_days: '7',
-    wind_speed_unit: 'ms',
-    daily: [
-      'temperature_2m_mean',
-      'pressure_msl_mean',
-      'wind_speed_10m_mean',
-      'cloud_cover_mean',
-      'precipitation_sum',
-    ].join(','),
-  });
+export async function fetchSevenDayWeather(
+  point: { lat: number; lng: number },
+  options?: { endpoint?: string },
+): Promise<WeatherSnapshot[] | null> {
+  const endpoint = options?.endpoint ?? 'https://api.open-meteo.com/v1/forecast';
 
-  const response = await fetch(`https://api.open-meteo.com/v1/forecast?${params.toString()}`, {
+  const params = new URLSearchParams(
+    endpoint.includes('open-meteo.com')
+      ? {
+          latitude: point.lat.toString(),
+          longitude: point.lng.toString(),
+          timezone: 'auto',
+          forecast_days: '7',
+          wind_speed_unit: 'ms',
+          daily: [
+            'temperature_2m_mean',
+            'pressure_msl_mean',
+            'wind_speed_10m_mean',
+            'cloud_cover_mean',
+            'precipitation_sum',
+          ].join(','),
+        }
+      : {
+          lat: point.lat.toString(),
+          lng: point.lng.toString(),
+        },
+  );
+
+  const separator = endpoint.includes('?') ? '&' : '?';
+  const response = await fetch(`${endpoint}${separator}${params.toString()}`, {
     method: 'GET',
     cache: 'no-store',
   });

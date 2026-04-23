@@ -36,6 +36,7 @@ sidebar_position: 4
   - global non-production runtime info block (endpoint/base URL)
   - waterbody type from hydro geocode with fallback strategy
   - real-weather prefetch (Open-Meteo) with fallback strategy to local weather estimation
+  - same-origin weather proxy endpoint (`/api/weather/forecast`) between web UI and external weather provider
   - hydration-safe client initialization for locale/runtime/url-sensitive UI
   - typed i18n dictionary keys (`LocaleKey`) to avoid drift between UI and translation catalog
 

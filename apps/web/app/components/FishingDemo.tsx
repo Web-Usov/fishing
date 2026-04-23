@@ -287,7 +287,7 @@ export function FishingDemo() {
       try {
         const waterbodyType = (await resolveWaterbodyTypeFromReality(location)) ?? 'lake';
         const now = new Date();
-        const realWeather = await fetchSevenDayWeather(location);
+        const realWeather = await fetchSevenDayWeather(location, { endpoint: '/api/weather/forecast' });
         const weatherSource: ForecastState['weatherSource'] = realWeather ? 'real' : 'fallback';
 
         const requests = Array.from({ length: 7 }, async (_, dayOffset) => {
@@ -438,6 +438,8 @@ export function FishingDemo() {
             {t('weather_source')}: <strong>{forecastState.weatherSource === 'real' ? t('real_weather') : t('fallback_weather')}</strong>
           </div>
         ) : null}
+
+        {forecastState.weatherSource === 'fallback' ? <InlineNotice text={t('fallback_weather_warning')} tone="error" /> : null}
 
         {forecastState.loading && forecastState.days.length === 0 ? <StateCard title={t('state_loading_title')} body={t('state_loading_body')} /> : null}
         {forecastState.loading && forecastState.days.length > 0 ? <InlineNotice text={t('updating_forecast')} /> : null}

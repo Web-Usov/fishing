@@ -80,6 +80,10 @@ const dictionary = {
   base_url: { ru: 'Base URL', en: 'Base URL' },
   real_weather: { ru: 'Реальная погода', en: 'Real weather' },
   fallback_weather: { ru: 'Оценочная погода (fallback)', en: 'Estimated weather (fallback)' },
+  fallback_weather_warning: {
+    ru: 'Внешний погодный источник недоступен — используются оценочные значения, точность прогноза ниже.',
+    en: 'External weather source is unavailable — estimated values are used, forecast accuracy is lower.',
+  },
   weather_source: { ru: 'Источник погоды', en: 'Weather source' },
   state_empty_title: { ru: 'Выберите точку на карте', en: 'Pick a point on the map' },
   state_empty_body: {
