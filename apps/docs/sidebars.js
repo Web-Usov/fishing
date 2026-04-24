@@ -1,8 +1,16 @@
 module.exports = {
   docsSidebar: [
     'index',
-    'product-overview',
-    'mvp-scope',
+    {
+      type: 'category',
+      label: 'Product',
+      items: ['product-start', 'product-overview', 'mvp-scope', 'delivery/roadmap']
+    },
+    {
+      type: 'category',
+      label: 'Develop',
+      items: [
+    'develop-start',
     'architecture',
     'shared-code-plan',
     {
@@ -13,7 +21,9 @@ module.exports = {
     {
       type: 'category',
       label: 'Планирование и delivery',
-      items: ['delivery/roadmap', 'delivery/backlog', 'delivery/task-state']
+      items: ['delivery/backlog', 'delivery/task-state']
+    }
+      ]
     }
   ]
 };

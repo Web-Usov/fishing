@@ -9,7 +9,7 @@ const config = {
   onBrokenLinks: 'throw',
   markdown: {
     hooks: {
-      onBrokenMarkdownLinks: 'warn'
+      onBrokenMarkdownLinks: 'throw'
     }
   },
   i18n: {
@@ -41,7 +41,21 @@ const config = {
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
       navbar: {
-        title: 'Fishing Docs'
+        title: 'Fishing Docs',
+        items: [
+          {
+            type: 'doc',
+            docId: 'product-start',
+            label: 'Product',
+            position: 'left'
+          },
+          {
+            type: 'doc',
+            docId: 'develop-start',
+            label: 'Develop',
+            position: 'left'
+          }
+        ]
       }
     }),
   themes: [],

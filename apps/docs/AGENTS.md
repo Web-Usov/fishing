@@ -12,7 +12,9 @@
 
 Текущая структура:
 
-- `index.md` — входная точка и навигация
+- `index.md` — входная точка со split по режимам чтения Product / Develop
+- `product-start.md` — входной документ Product-режима
+- `develop-start.md` — входной документ Develop-режима
 - `product-overview.md` — бизнесовая/продуктовая картина
 - `mvp-scope.md` — текущая граница поставляемого MVP
 - `architecture.md` — общая техническая картина
@@ -21,6 +23,11 @@
 - `delivery/roadmap.md` — большие этапы развития
 - `delivery/backlog.md` — декомпозиция на большие блоки
 - `delivery/task-state.md` — текущее состояние работ и параллельных потоков
+
+Навигационно docs разделены на два режима:
+
+- **Product**: `index.md`, `product-start.md`, `product-overview.md`, `mvp-scope.md`, `delivery/roadmap.md`
+- **Develop**: `develop-start.md`, `architecture.md`, `shared-code-plan.md`, `services/*`, `delivery/backlog.md`, `delivery/task-state.md`
 
 ## 3. Что обновлять при изменениях
 
