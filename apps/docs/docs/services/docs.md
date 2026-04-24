@@ -53,11 +53,11 @@ Docs выполняет четыре функции:
 
 - Изменился продуктовый сценарий: обновить `product-overview.md`/`mvp-scope.md` и связанные delivery-документы.
 - Изменились архитектура или сервисные границы: обновить `architecture.md`, `services/*` и при необходимости `shared-code-plan.md`.
-- Изменилась навигация: синхронно обновить `index.md` и `sidebars.js`.
+- Изменилась навигация: синхронно обновить `index.mdx` и `sidebars.js`.
 
 ## Что читать дальше
 
-- [Главная docs](../index.md)
+- [Главная docs](../index.mdx)
 - [Архитектура](../architecture.md)
 - [Roadmap](../delivery/roadmap.md)
 - [Backlog](../delivery/backlog.md)

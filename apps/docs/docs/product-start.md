@@ -1,6 +1,5 @@
 ---
-title: Обзор
-sidebar_position: 2
+title: С чего начать (Product)
 ---
 
 # Обзор
