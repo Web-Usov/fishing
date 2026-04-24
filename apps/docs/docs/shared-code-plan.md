@@ -1,83 +1,81 @@
 ---
 title: План разделяемого кода (web + mobile)
-sidebar_position: 4
+sidebar_position: 5
 ---
 
 # План разделяемого кода (web + mobile)
 
+Этот документ отвечает на вопрос: что должно быть общим между платформами, а что не нужно преждевременно тащить в shared-слой.
+
 ## Цель
 
-Максимально переиспользовать код между Next.js web и Expo mobile, не заставляя платформы иметь одинаковые экраны там, где UX должен отличаться.
+Максимально переиспользовать домен, контракты и низкоуровневые UI/infra части между web и mobile, не ломая platform-specific UX.
 
-## Текущее состояние
+## Текущее состояние shared-слоя
 
-- Общие domain/contracts/client пакеты:
-  - `packages/domain-geo`
-  - `packages/domain-bite-forecast`
-  - `packages/shared-zod`
-  - `packages/api-client`
-- Общие UI-примитивы:
-  - `packages/shared-ui` (new)
-    - `SharedCard`
-    - `SharedHeading`
-    - `SharedText`
-- Адаптеры карт в web:
-  - `apps/web/app/components/map/adapter-factory.ts`
-  - `apps/web/app/components/map/yandex-adapter.ts` (MVP provider)
-  - `apps/web/app/components/map/google-adapter.ts` (stub for future provider)
-- Состояние и UX в web:
-  - URL-shared coordinate state (`lat/lng` query params)
-  - 7-day forecast list + per-day details panel
-  - theme modes (`light`, `dark`, `system`)
-  - locale modes (`auto`, `ru`, `en`) with browser locale auto-detection
-  - optimistic forecast refresh (keep previous data while loading next point)
-  - scroll-preserving URL updates during coordinate change
-  - expandable factor-impact details in forecast panel
-  - global non-production runtime info block (endpoint/base URL)
-  - waterbody type from hydro geocode with fallback strategy
-  - real-weather prefetch (Open-Meteo) with fallback strategy to local weather estimation
-  - same-origin weather proxy endpoint (`/api/weather/forecast`) between web UI and external weather provider
-  - hydration-safe client initialization for locale/runtime/url-sensitive UI
-  - typed i18n dictionary keys (`LocaleKey`) to avoid drift between UI and translation catalog
+### Общие domain/contracts/client пакеты
 
-## Границы переиспользования
+- `packages/domain-geo`
+- `packages/domain-bite-forecast`
+- `packages/shared-zod`
+- `packages/api-client`
 
-### Полностью разделяемое
+### Общие UI-примитивы
 
-- бизнес-правила
-- контракты данных
-- API-клиент
-- форматирование/валидация
-- базовые UI-примитивы
+- `packages/shared-ui`
+- `packages/ui`
 
-### Платформенно-специфичное
+### Что уже стабилизировано как shared-подход
 
-- роутинг/навигация
-- рендеринг карт и жесты
-- экранный layout и адаптивный UX
-- платформенные интеграции
-- разрешения геолокации и secure-context ограничения браузера
-- определение локали браузера и хранение пользовательской локали
-- детали интеграции геокодинга конкретного провайдера карт (поведение Яндекса)
+- доменная логика прогноза;
+- схемы и контракты данных;
+- weather normalization в `api-client`;
+- часть UI-примитивов;
+- конфигурации инструментов;
+- общая документационная модель проекта.
+
+## Что остаётся платформенно-специфичным
+
+- routing/navigation;
+- page/screen-level композиция;
+- карта, жесты и provider-specific интеграции;
+- browser/mobile runtime особенности;
+- геолокационные ограничения платформ;
+- user-facing interaction design конкретной платформы.
 
 ## Паттерн реализации
 
-1. Сначала реализовывать фичевую логику в shared-пакетах.
-2. Создавать/расширять UI-примитивы в `packages/shared-ui`.
-3. Собирать экраны отдельно в `apps/web` и `apps/mobile`.
-4. Держать адаптеры тонкими и не тянуть platform-conditionals в domain-код.
-5. Для browser-only API обеспечивать детерминированный первый рендер и переносить чтение браузерных данных в post-mount эффекты.
-6. Внешние погодные поля сначала нормализовать в API-client слой, затем передавать в расчёт прогноза в стабильном контракте `WeatherSnapshot`.
+1. Сначала строить фичевую логику в shared packages там, где это оправдано.
+2. Сначала стабилизировать контракт, потом UI-реализации по платформам.
+3. Держать адаптеры тонкими.
+4. Не тащить platform-conditionals в domain code.
+5. Browser-only данные читать post-mount.
+6. Внешние данные сначала нормализовать в общем клиентском/infra-слое, потом использовать в сервисах.
+
+## Что нельзя выносить слишком рано
+
+- конкретные страницы и screen flows;
+- UX-композицию прогнозных экранов;
+- admin-specific интерфейсы;
+- карту как визуальную и interaction-реализацию;
+- любые abstraction-слои, которые появляются только ради «красоты архитектуры».
+
+## Следующие шаги shared-слоя
+
+1. Общие forecast widgets.
+2. Общие loading/error состояния там, где это действительно повторяется.
+3. Shared hooks для query/data состояния.
+4. Синхронизация дизайн-токенов между web и mobile.
 
 ## Политика документации
 
-- Источник истины о текущем состоянии проекта: `apps/docs/docs/*`.
-- После каждого исправления/изменения необходимо обновлять релевантные документы в этой папке в том же цикле работ.
-- Root-level документы (если есть) могут быть краткими, но не должны расходиться с `apps/docs/docs/*`.
+- Источник истины: `apps/docs/docs/*`.
+- После каждого изменения обновляются релевантные документы в той же work cycle.
+- Если меняются границы shared-vs-platform, этот документ обновляется обязательно.
 
-## Следующие этапы
+## Связанные документы
 
-1. Добавить общие виджеты прогноза (`ForecastScoreCard`, `FactorList`).
-2. Вынести общие loading/error состояния из web-демо в `shared-ui`.
-3. Ввести пакет shared hooks (`packages/shared-hooks`) для query/data состояния.
-4. Синхронизировать визуальные токены (цвета/отступы/типографика) между web/mobile.
+- [Архитектура](architecture.md)
+- [Web](services/web.md)
+- [Mobile](services/mobile.md)
+- [Backlog](delivery/backlog.md)

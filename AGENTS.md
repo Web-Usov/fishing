@@ -1,61 +1,84 @@
 # AGENTS Guide (Fishing Monorepo)
 
-This file defines how agents must work in this repository.
+Этот файл задаёт правила работы агентов в репозитории.
 
-## 1) Source of truth
+## 1. Источник истины
 
-- **Canonical project state is documented in:** `apps/docs/docs/*`
-- Required core pages:
+- Каноническая документация проекта находится в `apps/docs/docs/*`.
+- Основные документы, от которых агент должен отталкиваться:
   - `apps/docs/docs/index.md`
-  - `apps/docs/docs/architecture.md`
+  - `apps/docs/docs/product-overview.md`
   - `apps/docs/docs/mvp-scope.md`
+  - `apps/docs/docs/architecture.md`
   - `apps/docs/docs/shared-code-plan.md`
-- If any root-level docs or notes differ, `apps/docs/docs/*` is authoritative.
+  - `apps/docs/docs/delivery/roadmap.md`
+  - `apps/docs/docs/delivery/backlog.md`
+  - `apps/docs/docs/delivery/task-state.md`
+- Если описание в коде, заметках или root-level документах расходится с `apps/docs/docs/*`, приоритет у `apps/docs/docs/*`.
 
-## 2) Repository map (quick)
+## 2. Карта репозитория
 
-- `apps/web` - Next.js public web app (map + forecast MVP)
-- `apps/mobile` - Expo mobile app
-- `apps/admin` - Next.js admin app
-- `apps/api` - NestJS API
-- `apps/docs` - Docusaurus docs app
-- `packages/domain-*`, `packages/shared-zod`, `packages/api-client`, `packages/shared-ui` - shared domain/contracts/client/UI
+- `apps/web` — публичный web-клиент
+- `apps/mobile` — mobile-клиент на Expo
+- `apps/admin` — административная поверхность
+- `apps/api` — HTTP API
+- `apps/docs` — документационный сервис
+- `packages/*` — shared domain/contracts/ui/config/data слои
+- `docker-compose.yaml` — локальная инфраструктура и контейнерный dev/runtime контур
 
-## 3) Working rules for agents
+## 3. Обязательный порядок работы агента
 
-1. Read relevant docs in `apps/docs/docs/*` first.
-2. Implement requested change in code.
-3. Verify implementation (at minimum: related typecheck/build/tests where applicable).
-4. **Update `apps/docs/docs/*` in the same task** to reflect the new reality.
-5. In final report, state exactly which docs were updated.
+1. Прочитать релевантные документы в `apps/docs/docs/*`.
+2. Определить, к какому верхнеуровневому блоку относится задача:
+   - продукт/сценарий;
+   - архитектура/infra;
+   - конкретный сервис;
+   - roadmap/backlog/task-state.
+3. Проверить `delivery/task-state.md`, нет ли пересечения с уже активным потоком.
+4. Выполнить изменение в коде или документации.
+5. Обновить релевантные документы в `apps/docs/docs/*` в той же work cycle.
+6. Выполнить проверку (`docs:build`, а при необходимости `typecheck/build/test`).
+7. В финальном отчёте явно перечислить, какие документы были обновлены.
 
-## 4) Documentation update policy (mandatory)
+## 4. Как агенту работать с roadmap/backlog/task-state
 
-- After each fixed/merged change, docs must be updated in the same delivery cycle.
-- Minimum requirement:
-  - Update feature scope in `mvp-scope.md` when behavior changes.
-  - Update system/runtime details in `architecture.md` when architecture/runtime behavior changes.
-  - Update reuse/boundaries in `shared-code-plan.md` when shared-vs-platform decisions change.
-  - Keep `index.md` accurate as the docs entry point.
+- `roadmap.md` — большие этапы, не для ежедневной детализации.
+- `backlog.md` — декомпозиция на крупные user stories и технические блоки.
+- `task-state.md` — актуальное состояние и точка координации между параллельными сессиями.
 
-## 5) What to check before finishing
+Если задача:
 
-- Does implementation match current docs?
-- Do docs describe user-visible behavior and technical constraints?
-- Are LAN/deployment/hydration/runtime caveats still accurate?
-- Are new env vars / routes / UX rules documented?
+- меняет продуктовый сценарий — обновить `mvp-scope.md` и/или `product-overview.md`;
+- меняет архитектуру, runtime, infra или связи сервисов — обновить `architecture.md` и service docs;
+- меняет decomposition, sequencing или ownership — обновить `roadmap.md`, `backlog.md`, `task-state.md`.
 
-## 6) Useful commands
+## 5. Параллельная работа агентов
 
-From repository root:
+- По возможности одна агент-сессия должна брать один логический блок или одну подзадачу из backlog.
+- Для многосервисных изменений ownership делится по сервисам или по отдельным документам/модулям.
+- Перед началом новой параллельной ветки агент обязан проверить, что не конфликтует с существующим task-state.
+- Если агент берёт новый поток, он должен явно обновить `task-state.md`.
 
-- `pnpm --filter @fishing/web typecheck`
-- `pnpm --filter @fishing/web build`
+## 6. Что проверять перед завершением
+
+- Изменение соответствует актуальной документации.
+- Документация обновлена вместе с изменением.
+- Все новые маршруты, env, UX-правила и ограничения отражены в docs.
+- Если менялась документация — `pnpm docs:build` обязателен.
+- Если менялся код — запускать релевантные `typecheck/build/test`.
+
+## 7. Минимальный набор команд
+
 - `pnpm docs:serve`
 - `pnpm docs:build`
+- `pnpm typecheck`
+- `pnpm build`
+- `pnpm test`
+- `pnpm docker:dev`
+- `pnpm docker:rebuild`
 
-## 7) Scope discipline
+## 8. Scope discipline
 
-- Implement exactly requested changes.
-- Do not invent new features outside request.
-- If behavior changed, documentation change is not optional.
+- Делать только то, что запросил пользователь.
+- Не придумывать новые фичи без явного запроса.
+- Не считать документацию вторичной: если поведение меняется, docs меняются обязательно.
