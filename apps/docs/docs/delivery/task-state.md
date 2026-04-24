@@ -6,6 +6,10 @@ title: Task State
 
 Этот документ нужен для фиксации текущего состояния крупных блоков и для параллельной работы агент-сессий.
 
+**Для кого:** Develop (в первую очередь) + Product (для прозрачности статусов).
+
+**Навигация внутри delivery:** [Roadmap](roadmap.md) · [Backlog](backlog.md)
+
 ## Статусы
 
 - `idea`
@@ -61,3 +65,8 @@ title: Task State
 - если меняется продуктовый сценарий — обновлять `mvp-scope.md` и соответствующий service doc;
 - если меняется архитектура/infra — обновлять `architecture.md` и релевантный service doc;
 - если меняется sequencing/ownership/decomposition — обновлять `roadmap.md`, `backlog.md` или `task-state.md`.
+
+## Что читать дальше
+
+- [Объём MVP](../mvp-scope.md)
+- [Архитектура](../architecture.md)

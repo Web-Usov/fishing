@@ -7,6 +7,8 @@ sidebar_position: 5
 
 Этот документ отвечает на вопрос: что должно быть общим между платформами, а что не нужно преждевременно тащить в shared-слой.
 
+Документ относится к **Develop-режиму** и используется как практическое соглашение при изменениях в `apps/web`, `apps/mobile` и `packages/*`.
+
 ## Цель
 
 Максимально переиспользовать домен, контракты и низкоуровневые UI/infra части между web и mobile, не ломая platform-specific UX.
@@ -79,3 +81,8 @@ sidebar_position: 5
 - [Web](services/web.md)
 - [Mobile](services/mobile.md)
 - [Backlog](delivery/backlog.md)
+
+## Что читать дальше
+
+- [Task State](delivery/task-state.md) — какие потоки сейчас активны и где не пересечься.
+- [Roadmap](delivery/roadmap.md) — как shared-слой поддерживает этапность развития.

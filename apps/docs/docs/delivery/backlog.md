@@ -6,6 +6,10 @@ title: Backlog
 
 Backlog нужен для декомпозиции продукта на крупные user stories и технические блоки, которые можно раздавать в разные агент-сессии.
 
+**Для кого:** Product + Develop.
+
+**Навигация внутри delivery:** [Roadmap](roadmap.md) · [Task State](task-state.md)
+
 ## Правило декомпозиции
 
 Каждый блок должен иметь:
