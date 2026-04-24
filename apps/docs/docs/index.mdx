@@ -4,6 +4,9 @@ slug: /
 sidebar_position: 1
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Документация Fishing
 
 `apps/docs/docs/*` — источник истины по текущему состоянию продукта, архитектуры и плана развития.
@@ -18,23 +21,30 @@ sidebar_position: 1
 
 ## Start here
 
-### Product
+<Tabs>
+  <TabItem value="product" label="Product" default>
 
-Для продакта, оператора и бизнес-контекста. Этот режим помогает быстро понять, какую ценность даёт продукт сейчас, где проходит граница MVP и в какую сторону идёт развитие.
+Для продакта, оператора и бизнес-контекста. Помогает быстро понять ценность продукта, границу MVP и направление развития.
 
-Входной документ:
+- [Что это за продукт?](product-overview.md)
+- [Что входит в текущий MVP?](mvp-scope.md)
+- [Куда продукт развивается?](delivery/roadmap.md)
+- [Backlog](delivery/backlog.md) — декомпозиция на пользовательские и технические блоки
+- [Task State](delivery/task-state.md) — прозрачность статусов
 
-- [Start here (Product)](product-start.md)
+</TabItem>
+  <TabItem value="develop" label="Develop">
 
+Для разработчиков, архитекторов и агент-сессий, меняющих код, контракты и инфраструктуру.
 
+- [Общая архитектура системы](architecture.md)
+- [Shared-слой и договорённости](shared-code-plan.md)
+- Сервисы: [API](services/api.md), [Web](services/web.md), [Mobile](services/mobile.md), [Admin](services/admin.md), [Docs](services/docs.md), [Postgres](services/postgres.md)
+- [Backlog](delivery/backlog.md) и [Task State](delivery/task-state.md) — параллельная работа
+- [Roadmap](delivery/roadmap.md) — стратегический контекст
 
-### Develop
-
-Для разработчиков, архитекторов и агент-сессий, которые меняют код, контракты и инфраструктуру. Этот режим задаёт техническую картину системы, границы shared-слоя и рабочий delivery-контур.
-
-Входной документ:
-
-- [Start here (Develop)](develop-start.md)
+</TabItem>
+</Tabs>
 
 ## Полная карта документов
 
