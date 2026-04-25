@@ -10,6 +10,7 @@ title: С чего начать (Develop)
 
 - [Общая архитектура системы](architecture.md)
 - [Shared-слой и договорённости](shared-code-plan.md)
+- [OmO Agent Workflow Playbook](agent-workflow/omo-playbook.md)
 - Документация по сервисам: [API](services/api.md), [Web](services/web.md), [Mobile](services/mobile.md), [Admin](services/admin.md), [Docs](services/docs.md), [Postgres](services/postgres.md)
 - [Как устроена разработка и параллельная работа](delivery/backlog.md), [Task State](delivery/task-state.md)
 

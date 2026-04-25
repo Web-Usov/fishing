@@ -13,6 +13,7 @@ module.exports = {
     'develop-start',
     'architecture',
     'shared-code-plan',
+    'agent-workflow/omo-playbook',
     {
       type: 'category',
       label: 'Сервисы',

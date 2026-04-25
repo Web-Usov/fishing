@@ -47,6 +47,15 @@ title: Task State
 
 - Статус: `in_progress`
 
+### OmO Agent Workflow Playbook
+
+- Родительский блок: Platform maturity
+- Статус: `done`
+- Затрагиваемые сервисы: docs
+- Зависимости: `apps/docs/docs/develop-start.md`, `apps/docs/docs/index.mdx`
+- Документы для обновления: `apps/docs/docs/agent-workflow/omo-playbook.md`, `apps/docs/sidebars.js`, `apps/docs/docs/delivery/task-state.md`
+- Комментарий: добавлен практический playbook по выбору агентов, skills и режимов OmO для продуктивной работы в монорепозитории Fishing.
+
 ## Формат записи новой подзадачи
 
 ```md
