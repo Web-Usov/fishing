@@ -4,7 +4,7 @@ module.exports = {
     {
       type: 'category',
       label: 'Product',
-      items: ['product-start', 'product-overview', 'mvp-scope', 'delivery/roadmap']
+      items: ['product-start', 'product-overview', 'mvp-scope', 'domain-model', 'bite-forecast-model', 'catch-journal', 'delivery/roadmap']
     },
     {
       type: 'category',
