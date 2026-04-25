@@ -1,0 +1,35 @@
+# Learnings
+
+- Добавлен `apps/docs/docs/domain-model.md` с целевой моделью сущностей `Waterbody`, `Spot`, `Forecast`, `Trip/Session`, `Catch` и явными ограничениями связей.
+- Для терминологической согласованности зафиксировано, что продуктовый `Spot` и технический `FishingPoint`/«точка» обозначают одну сущность.
+- В разделе про MVP явно отмечено: сейчас реализованы только coordinate-level `Spot` и `Forecast`, остальные сущности описаны как target model.
+- Добавлен `apps/docs/docs/bite-forecast-model.md` с код-аккуратными порогами факторов, формулой `score`, правилами `level/confidence` и явными ограничениями текущей MVP-модели без заявлений о видовой, сезонной или региональной калибровке.
+- Добавлен `apps/docs/docs/catch-journal.md` как future-layer документ после MVP baseline: описана роль журнала улова, связь сущностей `Trip`, `Catch`, `Forecast`, `Spot`, `Waterbody`, цепочка «прогноз → условия → результат», идеи метрик качества по пользователю/водоёму/региону и явная граница, что в текущем MVP журнал ещё не реализован.
+- Обновлён `apps/docs/docs/product-overview.md`: сегментация переписана в 4 явных архетипа, добавлен раздел «Сценарии использования по сегментам» с разделением «Сейчас в MVP» и «Запланировано дальше», расширен блок «Журнал улова» с ссылкой на `./catch-journal.md` и связью личной истории с оценкой качества прогноза, а в «Что читать дальше» добавлены ссылки на `mvp-scope.md`, `domain-model.md`, `catch-journal.md`.
+- В `apps/docs/sidebars.js` Product-навигация переведена на явный порядок с новыми документами `domain-model`, `bite-forecast-model`, `catch-journal` между `mvp-scope` и `delivery/roadmap`.
+- Continuation-check: в плане `docs-domain-forecast-plan` не осталось `- [ ]`; все top-level задачи закрыты, дальнейшее выполнение блокируется отсутствием незавершённых пунктов.
+- Continuation-check (repeat): план повторно перечитан, `- [ ]` отсутствуют; blocker подтверждён — нет следующего task для выполнения.
+- Continuation-check (repeat-2): повторная валидация показала 0 незавершённых пунктов; движение по плану заблокировано до появления нового unchecked task.
+- Continuation-check (repeat-3): план перечитан, все top-level пункты отмечены `[x]`, `- [ ]` не найдены; blocker подтверждён.
+- Continuation-check (repeat-4): повторная проверка подтвердила, что `docs-domain-forecast-plan` полностью закрыт, новых unchecked задач нет.
+- Continuation-check (repeat-5): `- [ ]` в плане отсутствуют, последний завершённый task уже отмечен `[x]`; blocker зафиксирован, следующий task отсутствует.
+- Continuation-check (repeat-6): повторный прогон continuation подтвердил полностью закрытый план и отсутствие следующего шага.
+- Continuation-check (repeat-7): повторная проверка показала, что в плане нет `- [ ]`; blocker остаётся прежним — отсутствуют незавершённые задачи.
+- Continuation-check (repeat-8): проверка вновь подтвердила полностью закрытый план (`0 remaining`), продолжение заблокировано отсутствием новых задач.
+- Continuation-check (repeat-9): очередная проверка показала отсутствие `- [ ]`; последний выполненный пункт уже `[x]`, новых задач для выполнения нет.
+- Continuation-check (repeat-10): план прочитан, все top-level задачи завершены, незакрытых checkbox нет; blocker подтверждён.
+- Continuation-check (repeat-11): повторная проверка подтвердила отсутствие `- [ ]` и полное завершение плана; следующий task отсутствует.
+- Continuation-check (repeat-12): plan re-read completed, unchecked tasks not found; blocker unchanged (no remaining work items).
+- Continuation-check (repeat-13): top-level plan still fully checked, `- [ ]` absent; blocker unchanged.
+- Continuation-check (repeat-14): `docs-domain-forecast-plan` remains fully complete; no unchecked boxes to execute.
+- Continuation-check (repeat-15): plan still has zero unchecked items; blocker unchanged (no remaining tasks).
+- Continuation-check (repeat-16): re-validated plan state, `- [ ]` absent; execution blocked by fully completed plan.
+- Continuation-check (repeat-17): first-step validation passed, but no unchecked tasks remain; blocker persisted.
+- Continuation-check (repeat-18): plan re-read completed, `- [ ]` still absent; no executable next task.
+- Continuation-check (repeat-19): mandatory first-step repeated, plan remains fully checked; blocker unchanged.
+- Continuation-check (repeat-20): plan re-check confirms zero unchecked boxes; no further executable tasks.
+- Continuation-check (repeat-21): mandatory re-check completed, plan has no `- [ ]`; blocker unchanged.
+- Continuation-check (repeat-22): first-step revalidation done; plan remains fully complete with zero pending checkboxes.
+- Continuation-check (repeat-23): plan read and grep check confirm no `- [ ]`; blocker unchanged (no remaining tasks).
+- Continuation-check (repeat-24): first-step check repeated, plan still fully complete; no executable next task.
+- Continuation-check (repeat-25): repeated mandatory check confirms 0 unchecked tasks; blocker remains (nothing to execute).
