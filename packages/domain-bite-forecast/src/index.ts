@@ -6,15 +6,7 @@ import {
 } from '@fishing/shared-zod';
 
 export function calculateBiteForecast(input: BiteForecastRequest): BiteForecastResponse {
-  const factors: [
-    BiteForecastFactor,
-    BiteForecastFactor,
-    BiteForecastFactor,
-    BiteForecastFactor,
-    BiteForecastFactor,
-    BiteForecastFactor,
-    BiteForecastFactor,
-  ] = [
+  const factors: BiteForecastFactor[] = [
     scorePressure(input.weather.pressureHpa),
     scoreWind(input.weather.windSpeedMps),
     scoreTemperature(input.weather.airTemperatureC),
@@ -22,13 +14,16 @@ export function calculateBiteForecast(input: BiteForecastRequest): BiteForecastR
     scorePrecipitation(input.weather.precipitationMm),
     scoreMoon(input.weather.moonIlluminationPct),
     scoreWaterbody(input.waterbodyType),
+    scoreTimeOfDay(input.timestamp, input.timezone),
+    scoreSeason(input.timestamp),
   ];
 
   const rawScore = 50 + factors.reduce((sum, factor) => sum + factor.impact, 0);
   const score = Math.max(0, Math.min(100, Math.round(rawScore)));
   const level =
     score >= 80 ? 'excellent' : score >= 60 ? 'good' : score >= 40 ? 'moderate' : 'poor';
-  const confidence = score >= 70 || score <= 30 ? 'high' : score >= 45 ? 'medium' : 'low';
+  const offset = Math.abs(score - 50);
+  const confidence = offset >= 25 ? 'high' : offset >= 15 ? 'medium' : 'low';
   const strongestFactor = factors.reduce((strongest, factor) =>
     Math.abs(factor.impact) > Math.abs(strongest.impact) ? factor : strongest,
   );
@@ -112,5 +107,67 @@ function scoreWaterbody(waterbodyType: BiteForecastRequest['waterbodyType']): Bi
       return { id: 'waterbody', label: 'Прудовой паттерн', impact: 2 };
     case 'river':
       return { id: 'waterbody', label: 'Речной паттерн', impact: 0 };
+  }
+}
+
+function scoreTimeOfDay(timestamp: string, timezone: string): BiteForecastFactor {
+  const localHour = getLocalHour(timestamp, timezone);
+
+  if (localHour >= 4 && localHour <= 8) {
+    return { id: 'timeOfDay', label: 'Утренний выход рыбы', impact: 9 };
+  }
+
+  if (localHour >= 18 && localHour <= 22) {
+    return { id: 'timeOfDay', label: 'Вечерняя активность рыбы', impact: 6 };
+  }
+
+  if (localHour >= 11 && localHour <= 16) {
+    return { id: 'timeOfDay', label: 'Дневная пассивность рыбы', impact: -4 };
+  }
+
+  if (localHour >= 23 || localHour <= 3) {
+    return { id: 'timeOfDay', label: 'Ночная пассивность рыбы', impact: -9 };
+  }
+
+  if (localHour >= 9 && localHour <= 10) {
+    return { id: 'timeOfDay', label: 'Переход после рассвета', impact: 1 };
+  }
+
+  return { id: 'timeOfDay', label: 'Нейтральный суточный ритм', impact: 0 };
+}
+
+function scoreSeason(timestamp: string): BiteForecastFactor {
+  const month = new Date(timestamp).getUTCMonth() + 1;
+
+  if (month === 3 || month === 4 || month === 5) {
+    return { id: 'season', label: 'Весенний период активности', impact: 4 };
+  }
+
+  if (month === 9 || month === 10 || month === 11) {
+    return { id: 'season', label: 'Осенний период активности', impact: 4 };
+  }
+
+  if (month === 6 || month === 7 || month === 8) {
+    return { id: 'season', label: 'Летний стабильный режим', impact: 1 };
+  }
+
+  return { id: 'season', label: 'Зимняя пассивность рыбы', impact: -3 };
+}
+
+function getLocalHour(timestamp: string, timezone: string): number {
+  const date = new Date(timestamp);
+
+  try {
+    const hourPart = new Intl.DateTimeFormat('en-US', {
+      hour: '2-digit',
+      hour12: false,
+      timeZone: timezone,
+    })
+      .formatToParts(date)
+      .find((part) => part.type === 'hour')?.value;
+
+    return hourPart ? Number(hourPart) : date.getUTCHours();
+  } catch {
+    return date.getUTCHours();
   }
 }
