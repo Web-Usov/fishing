@@ -31,6 +31,15 @@ title: Task State
   - Mobile adaptation
   - Admin/support tooling
 
+### Суточный и сезонный скоринг в модели прогноза
+
+- Родительский блок: Прогноз клёва
+- Статус: `done`
+- Затрагиваемые сервисы: shared / docs / api
+- Зависимости: `packages/domain-bite-forecast/src/index.ts`, `packages/domain-bite-forecast/tests/calculate-bite-forecast.spec.ts`
+- Документы для обновления: `apps/docs/docs/bite-forecast-model.md`, `apps/docs/docs/domain-model.md`, `apps/docs/docs/delivery/task-state.md`
+- Комментарий: добавлены факторы времени суток и сезонности, confidence переведён на правило по удалённости от 50, сохранён API-контракт и обновлена explainability-документация.
+
 ### Журнал улова
 
 - Статус: `planned`
