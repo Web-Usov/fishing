@@ -36,6 +36,21 @@ Web реализует пользовательский цикл выбора т
 - locale/theme providers;
 - same-origin route `/api/weather/forecast` для проксирования погодных данных.
 
+### Runtime-паттерны
+
+- **URL-state (`lat/lng`) как источник истины для выбранной точки:**
+  - координаты живут в query-параметрах URL;
+  - это позволяет делиться ссылкой на конкретную точку и восстанавливать состояние при перезагрузке.
+
+- **Hydration-safe поведение:**
+  - первый рендер должен оставаться детерминированным;
+  - browser-only сущности (`window`, `navigator`, `localStorage` и т. п.) читаются только после mount (client components / эффекты).
+
+- **Same-origin weather proxy:**
+  - web использует route `/api/weather/forecast` (`apps/web/app/api/weather/forecast/route.ts`) для обращения к Open-Meteo;
+  - route валидирует координаты и различает классы ошибок: `400` (invalid coords), `502` (provider error), `503` (provider unavailable);
+  - Целевой UX-контракт: UI должен отображать разные пользовательские состояния для этих статусов (например, «неправильные координаты» vs «провайдер недоступен»), даже если текущий demo-контур часть случаев сводит к fallback-состоянию.
+
 ## Стек
 
 - `Next.js`
@@ -59,6 +74,8 @@ Web реализует пользовательский цикл выбора т
 - `@fishing/api-client`;
 - `@fishing/shared-ui`;
 - map provider adapters (`yandex`/`google`) и browser runtime.
+
+Доменный прогноз запрашивается через `apps/api` и `@fishing/api-client`, а weather-proxy в web отвечает только за погодные данные и не содержит доменную логику прогноза клёва.
 
 ## Инфраструктура
 
