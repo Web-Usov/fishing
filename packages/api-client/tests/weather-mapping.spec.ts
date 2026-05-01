@@ -1,6 +1,10 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { mapOpenMeteoToWeatherSeries } from '../src/index';
+import { fetchSevenDayWeather, mapOpenMeteoToWeatherSeries } from '../src/index';
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 describe('mapOpenMeteoToWeatherSeries', () => {
   it('maps first 7 days into WeatherSnapshot series', () => {
@@ -40,5 +44,48 @@ describe('mapOpenMeteoToWeatherSeries', () => {
     });
 
     expect(result).toBeNull();
+  });
+
+  it('returns null for provider non-ok response', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: false,
+      json: async () => ({}),
+    } as Response);
+
+    const result = await fetchSevenDayWeather(
+      { lat: 55.751244, lng: 37.618423 },
+      { endpoint: '/api/weather/forecast', provider: 'proxy' },
+    );
+
+    expect(result).toBeNull();
+  });
+
+  it('returns null for malformed open-meteo payload', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({ daily: { time: ['2026-04-01'] } }),
+    } as Response);
+
+    const result = await fetchSevenDayWeather({ lat: 55.751244, lng: 37.618423 }, { provider: 'open-meteo' });
+
+    expect(result).toBeNull();
+  });
+
+  it('uses provider-specific query params for proxy endpoint', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({ daily: {} }),
+    } as Response);
+
+    await fetchSevenDayWeather(
+      { lat: 55.751244, lng: 37.618423 },
+      { endpoint: '/api/weather/forecast', provider: 'proxy' },
+    );
+
+    const firstCallUrl = String(fetchMock.mock.calls[0]?.[0] ?? '');
+    expect(firstCallUrl).toContain('lat=55.751244');
+    expect(firstCallUrl).toContain('lng=37.618423');
+    expect(firstCallUrl).not.toContain('latitude=');
+    expect(firstCallUrl).not.toContain('daily=');
   });
 });

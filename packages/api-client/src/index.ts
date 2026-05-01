@@ -1,12 +1,18 @@
-import { biteForecastResponseSchema, type BiteForecastRequest } from '@fishing/shared-zod';
-
-export type WeatherSnapshot = {
-  pressureHpa: number;
-  airTemperatureC: number;
-  windSpeedMps: number;
-  cloudCoverPct: number;
-  precipitationMm: number;
-};
+import {
+  WEATHER_CLOUD_COVER_MAX,
+  WEATHER_CLOUD_COVER_MIN,
+  WEATHER_PRECIPITATION_MAX,
+  WEATHER_PRECIPITATION_MIN,
+  WEATHER_PRESSURE_MAX,
+  WEATHER_PRESSURE_MIN,
+  WEATHER_TEMPERATURE_MAX,
+  WEATHER_TEMPERATURE_MIN,
+  WEATHER_WIND_SPEED_MAX,
+  WEATHER_WIND_SPEED_MIN,
+  biteForecastResponseSchema,
+  type BiteForecastRequest,
+  type WeatherSnapshot,
+} from '@fishing/shared-zod';
 
 type OpenMeteoDailyResponse = {
   daily?: {
@@ -21,11 +27,17 @@ type OpenMeteoDailyResponse = {
 
 function normalizeWeatherSnapshot(input: WeatherSnapshot): WeatherSnapshot {
   return {
-    pressureHpa: Math.min(1085, Math.max(930, Math.round(input.pressureHpa))),
-    airTemperatureC: Math.min(50, Math.max(-50, Math.round(input.airTemperatureC))),
-    windSpeedMps: Math.min(60, Math.max(0, Math.round(input.windSpeedMps))),
-    cloudCoverPct: Math.min(100, Math.max(0, Math.round(input.cloudCoverPct))),
-    precipitationMm: Math.min(500, Math.max(0, Number(input.precipitationMm.toFixed(1)))),
+    pressureHpa: Math.min(WEATHER_PRESSURE_MAX, Math.max(WEATHER_PRESSURE_MIN, Math.round(input.pressureHpa))),
+    airTemperatureC: Math.min(
+      WEATHER_TEMPERATURE_MAX,
+      Math.max(WEATHER_TEMPERATURE_MIN, Math.round(input.airTemperatureC)),
+    ),
+    windSpeedMps: Math.min(WEATHER_WIND_SPEED_MAX, Math.max(WEATHER_WIND_SPEED_MIN, Math.round(input.windSpeedMps))),
+    cloudCoverPct: Math.min(WEATHER_CLOUD_COVER_MAX, Math.max(WEATHER_CLOUD_COVER_MIN, Math.round(input.cloudCoverPct))),
+    precipitationMm: Math.min(
+      WEATHER_PRECIPITATION_MAX,
+      Math.max(WEATHER_PRECIPITATION_MIN, Number(input.precipitationMm.toFixed(1))),
+    ),
   };
 }
 
@@ -88,12 +100,13 @@ export function mapOpenMeteoToWeatherSeries(payload: OpenMeteoDailyResponse): We
 
 export async function fetchSevenDayWeather(
   point: { lat: number; lng: number },
-  options?: { endpoint?: string },
+  options?: { endpoint?: string; provider?: 'open-meteo' | 'proxy' },
 ): Promise<WeatherSnapshot[] | null> {
   const endpoint = options?.endpoint ?? 'https://api.open-meteo.com/v1/forecast';
+  const provider = options?.provider ?? 'open-meteo';
 
   const params = new URLSearchParams(
-    endpoint.includes('open-meteo.com')
+    provider === 'open-meteo'
       ? {
           latitude: point.lat.toString(),
           longitude: point.lng.toString(),

@@ -18,7 +18,6 @@
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@fishing/domain-geo": "workspace:*",
     "zod": "^4.1.11"
   }
 }
