@@ -6,7 +6,6 @@ export type WeatherSnapshot = {
   windSpeedMps: number;
   cloudCoverPct: number;
   precipitationMm: number;
-  moonIlluminationPct: number;
 };
 
 type OpenMeteoDailyResponse = {
@@ -20,14 +19,13 @@ type OpenMeteoDailyResponse = {
   };
 };
 
-function normalizeWeatherSnapshot(input: Partial<WeatherSnapshot>): WeatherSnapshot {
+function normalizeWeatherSnapshot(input: WeatherSnapshot): WeatherSnapshot {
   return {
-    pressureHpa: Math.min(1085, Math.max(930, Math.round(input.pressureHpa ?? 1013))),
-    airTemperatureC: Math.min(50, Math.max(-50, Math.round(input.airTemperatureC ?? 12))),
-    windSpeedMps: Math.min(60, Math.max(0, Math.round(input.windSpeedMps ?? 3))),
-    cloudCoverPct: Math.min(100, Math.max(0, Math.round(input.cloudCoverPct ?? 40))),
-    precipitationMm: Math.min(500, Math.max(0, Number((input.precipitationMm ?? 0).toFixed(1)))),
-    moonIlluminationPct: Math.min(100, Math.max(0, Math.round(input.moonIlluminationPct ?? 50))),
+    pressureHpa: Math.min(1085, Math.max(930, Math.round(input.pressureHpa))),
+    airTemperatureC: Math.min(50, Math.max(-50, Math.round(input.airTemperatureC))),
+    windSpeedMps: Math.min(60, Math.max(0, Math.round(input.windSpeedMps))),
+    cloudCoverPct: Math.min(100, Math.max(0, Math.round(input.cloudCoverPct))),
+    precipitationMm: Math.min(500, Math.max(0, Number(input.precipitationMm.toFixed(1)))),
   };
 }
 
@@ -50,16 +48,42 @@ export function mapOpenMeteoToWeatherSeries(payload: OpenMeteoDailyResponse): We
     return null;
   }
 
-  return Array.from({ length: 7 }, (_, dayOffset) =>
-    normalizeWeatherSnapshot({
-      airTemperatureC: daily.temperature_2m_mean?.[dayOffset] ?? 12,
-      pressureHpa: daily.pressure_msl_mean?.[dayOffset] ?? 1013,
-      windSpeedMps: daily.wind_speed_10m_mean?.[dayOffset] ?? 3,
-      cloudCoverPct: daily.cloud_cover_mean?.[dayOffset] ?? 40,
-      precipitationMm: daily.precipitation_sum?.[dayOffset] ?? 0,
-      moonIlluminationPct: 50,
-    }),
-  );
+  const series: WeatherSnapshot[] = [];
+  for (let dayOffset = 0; dayOffset < 7; dayOffset += 1) {
+    const airTemperatureRaw = daily.temperature_2m_mean?.[dayOffset];
+    const pressureRaw = daily.pressure_msl_mean?.[dayOffset];
+    const windSpeedRaw = daily.wind_speed_10m_mean?.[dayOffset];
+    const cloudCoverRaw = daily.cloud_cover_mean?.[dayOffset];
+    const precipitationRaw = daily.precipitation_sum?.[dayOffset];
+
+    if (
+      !Number.isFinite(airTemperatureRaw) ||
+      !Number.isFinite(pressureRaw) ||
+      !Number.isFinite(windSpeedRaw) ||
+      !Number.isFinite(cloudCoverRaw) ||
+      !Number.isFinite(precipitationRaw)
+    ) {
+      return null;
+    }
+
+    const airTemperatureC = Number(airTemperatureRaw);
+    const pressureHpa = Number(pressureRaw);
+    const windSpeedMps = Number(windSpeedRaw);
+    const cloudCoverPct = Number(cloudCoverRaw);
+    const precipitationMm = Number(precipitationRaw);
+
+    series.push(
+      normalizeWeatherSnapshot({
+        airTemperatureC,
+        pressureHpa,
+        windSpeedMps,
+        cloudCoverPct,
+        precipitationMm,
+      }),
+    );
+  }
+
+  return series;
 }
 
 export async function fetchSevenDayWeather(

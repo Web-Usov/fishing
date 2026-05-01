@@ -84,6 +84,7 @@ delivery/
 
 | Plan ID | Статус | Scope | Сервисы | PLAN | REVIEW |
 |---|---|---|---|---|---|
+| `2026-05-forecast-production-hardening` | `reviewed` | Доведение прогноза до production-grade, удаление `waterbodyType`, отказ от synthetic fallback в расчёте | shared, api, web, docs | `delivery/plans/2026-05-forecast-production-hardening/PLAN.md` | `delivery/plans/2026-05-forecast-production-hardening/REVIEW.md` |
 | `2026-04-forecast-quality` | `closed` | Улучшение модели прогноза | shared, api, docs | `delivery/plans/2026-04-forecast-quality/PLAN.md` | `delivery/plans/2026-04-forecast-quality/REVIEW.md` |
 
 Если фактические файлы ещё не перенесены в `delivery/plans/*`, можно временно использовать запись со ссылкой на legacy-артефакты, но это transitional-состояние, а не целевая модель.

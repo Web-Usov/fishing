@@ -11,14 +11,12 @@ describe('shared-zod', () => {
       point: { lat: 55.751244, lng: 37.618423 },
       timestamp: '2026-04-19T06:00:00.000Z',
       timezone: 'Europe/Moscow',
-      waterbodyType: 'lake',
       weather: {
         pressureHpa: 1018,
         airTemperatureC: 16,
         windSpeedMps: 2,
         cloudCoverPct: 35,
         precipitationMm: 0,
-        moonIlluminationPct: 48,
       },
     });
 

@@ -12,8 +12,6 @@ export function calculateBiteForecast(input: BiteForecastRequest): BiteForecastR
     scoreTemperature(input.weather.airTemperatureC),
     scoreClouds(input.weather.cloudCoverPct),
     scorePrecipitation(input.weather.precipitationMm),
-    scoreMoon(input.weather.moonIlluminationPct),
-    scoreWaterbody(input.waterbodyType),
     scoreTimeOfDay(input.timestamp, input.timezone),
     scoreSeason(input.timestamp),
   ];
@@ -87,27 +85,6 @@ function scorePrecipitation(precipitationMm: number): BiteForecastFactor {
   }
 
   return { id: 'precipitation', label: 'Интенсивные осадки', impact: -8 };
-}
-
-function scoreMoon(moonIlluminationPct: number): BiteForecastFactor {
-  if (moonIlluminationPct >= 25 && moonIlluminationPct <= 75) {
-    return { id: 'moon', label: 'Сбалансированная лунная фаза', impact: 5 };
-  }
-
-  return { id: 'moon', label: 'Крайняя лунная фаза', impact: -3 };
-}
-
-function scoreWaterbody(waterbodyType: BiteForecastRequest['waterbodyType']): BiteForecastFactor {
-  switch (waterbodyType) {
-    case 'lake':
-      return { id: 'waterbody', label: 'Озёрный паттерн', impact: 5 };
-    case 'reservoir':
-      return { id: 'waterbody', label: 'Водохранилищный паттерн', impact: 3 };
-    case 'pond':
-      return { id: 'waterbody', label: 'Прудовой паттерн', impact: 2 };
-    case 'river':
-      return { id: 'waterbody', label: 'Речной паттерн', impact: 0 };
-  }
 }
 
 function scoreTimeOfDay(timestamp: string, timezone: string): BiteForecastFactor {

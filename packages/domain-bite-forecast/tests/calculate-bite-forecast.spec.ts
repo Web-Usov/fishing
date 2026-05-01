@@ -7,14 +7,12 @@ function makeBaseRequest() {
     point: { lat: 55.751244, lng: 37.618423 },
     timestamp: '2026-10-19T05:00:00.000Z',
     timezone: 'Europe/Moscow',
-    waterbodyType: 'lake' as const,
     weather: {
       pressureHpa: 1000,
       airTemperatureC: 8,
       windSpeedMps: 6,
       cloudCoverPct: 10,
       precipitationMm: 0,
-      moonIlluminationPct: 95,
     },
   };
 }
@@ -45,7 +43,7 @@ describe('calculateBiteForecast', () => {
     expect(result.score).toBeLessThanOrEqual(100);
     expect(['poor', 'moderate', 'good', 'excellent']).toContain(result.level);
     expect(['low', 'medium', 'high']).toContain(result.confidence);
-    expect(result.factors).toHaveLength(9);
+    expect(result.factors).toHaveLength(7);
     expect(result.factors.every((factor) => factor.impact >= -30 && factor.impact <= 30)).toBe(true);
     expect(result.factors.some((factor) => factor.id === 'timeOfDay')).toBe(true);
     expect(result.factors.some((factor) => factor.id === 'season')).toBe(true);
@@ -56,14 +54,12 @@ describe('calculateBiteForecast', () => {
       ...makeBaseRequest(),
       timestamp: '2026-10-19T04:30:00.000Z',
       timezone: 'Europe/Moscow',
-      waterbodyType: 'lake',
       weather: {
         pressureHpa: 1000,
         airTemperatureC: 8,
         windSpeedMps: 6,
         cloudCoverPct: 30,
         precipitationMm: 0,
-        moonIlluminationPct: 95,
       },
     });
 
@@ -79,19 +75,17 @@ describe('calculateBiteForecast', () => {
       ...makeBaseRequest(),
       timestamp: '2026-07-19T12:30:00.000Z',
       timezone: 'Europe/Moscow',
-      waterbodyType: 'river',
       weather: {
         pressureHpa: 1016,
         airTemperatureC: 18,
         windSpeedMps: 8,
         cloudCoverPct: 0,
         precipitationMm: 0,
-        moonIlluminationPct: 99,
       },
     });
 
     expect(result.score).toBeGreaterThanOrEqual(40);
-    expect(result.score).toBeLessThanOrEqual(60);
+    expect(result.score).toBeLessThanOrEqual(62);
     expect(result.confidence).not.toBe('high');
   });
 
@@ -100,14 +94,12 @@ describe('calculateBiteForecast', () => {
       ...makeBaseRequest(),
       timestamp: '2026-01-19T00:30:00.000Z',
       timezone: 'Europe/Moscow',
-      waterbodyType: 'lake',
       weather: {
         pressureHpa: 1008,
         airTemperatureC: 10,
         windSpeedMps: 8,
         cloudCoverPct: 0,
         precipitationMm: 2.5,
-        moonIlluminationPct: 99,
       },
     });
 
@@ -124,18 +116,16 @@ describe('calculateBiteForecast', () => {
       ...makeBaseRequest(),
       timestamp: '2026-07-19T12:00:00.000Z',
       timezone: 'Europe/Moscow',
-      waterbodyType: 'river',
       weather: {
         pressureHpa: 1016,
         airTemperatureC: 18,
         windSpeedMps: 8,
         cloudCoverPct: 0,
         precipitationMm: 0,
-        moonIlluminationPct: 99,
       },
     });
 
-    expect(result.score).toBe(59);
+    expect(result.score).toBe(62);
     expect(result.confidence).toBe('low');
   });
 

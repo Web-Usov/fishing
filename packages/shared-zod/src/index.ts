@@ -1,22 +1,18 @@
 import { geoPointSchema } from '@fishing/domain-geo';
 import { z } from 'zod';
 
-export const waterbodyTypeSchema = z.enum(['lake', 'river', 'reservoir', 'pond']);
-
 export const weatherSnapshotSchema = z.object({
   pressureHpa: z.number().min(930).max(1085),
   airTemperatureC: z.number().min(-50).max(50),
   windSpeedMps: z.number().min(0).max(60),
   cloudCoverPct: z.number().min(0).max(100),
   precipitationMm: z.number().min(0).max(500),
-  moonIlluminationPct: z.number().min(0).max(100),
 });
 
 export const biteForecastRequestSchema = z.object({
   point: geoPointSchema,
   timestamp: z.iso.datetime(),
   timezone: z.string().min(1),
-  waterbodyType: waterbodyTypeSchema,
   weather: weatherSnapshotSchema,
 });
 

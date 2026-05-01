@@ -24,7 +24,6 @@ describe('mapOpenMeteoToWeatherSeries', () => {
       windSpeedMps: 2,
       cloudCoverPct: 15,
       precipitationMm: 0,
-      moonIlluminationPct: 50,
     });
   });
 

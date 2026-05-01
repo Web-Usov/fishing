@@ -8,7 +8,6 @@ import { useLocale } from './locale/LocaleProvider';
 import { ProviderMap } from './map/ProviderMap';
 import type { MapPoint, MapProvider } from './map/types';
 
-type WaterbodyType = 'lake' | 'river' | 'reservoir' | 'pond';
 type ForecastLevel = 'poor' | 'moderate' | 'good' | 'excellent';
 type ForecastConfidence = 'low' | 'medium' | 'high';
 
@@ -24,7 +23,6 @@ type WeatherSnapshot = {
   windSpeedMps: number;
   cloudCoverPct: number;
   precipitationMm: number;
-  moonIlluminationPct: number;
 };
 
 type BiteForecastRequest = {
@@ -34,7 +32,6 @@ type BiteForecastRequest = {
   };
   timestamp: string;
   timezone: string;
-  waterbodyType: WaterbodyType;
   weather: WeatherSnapshot;
 };
 
@@ -56,7 +53,6 @@ type DayForecast = {
   label: string;
   timestamp: string;
   weather: WeatherSnapshot;
-  waterbodyType: WaterbodyType;
   response: BiteForecastResponse;
 };
 
@@ -64,7 +60,7 @@ type ForecastState = {
   loading: boolean;
   error: string | null;
   days: DayForecast[];
-  weatherSource: 'real' | 'fallback' | null;
+  weatherSource: 'real' | null;
 };
 
 const MAP_PROVIDER: MapProvider = process.env.NEXT_PUBLIC_MAP_PROVIDER === 'google' ? 'google' : 'yandex';
@@ -161,61 +157,15 @@ function updateLocationInUrl(location: SelectedLocation | null) {
   window.scrollTo({ top: currentScrollY, left: 0, behavior: 'auto' });
 }
 
-function estimateWeatherByCoordinates(lat: number, lng: number, dayOffset: number): WeatherSnapshot {
-  const seed = Math.abs(Math.sin(lat * 0.17 + lng * 0.11 + dayOffset * 0.53));
-
-  return {
-    pressureHpa: Math.round(1004 + seed * 20),
-    airTemperatureC: Math.round(6 + seed * 18),
-    windSpeedMps: Math.round(1 + seed * 7),
-    cloudCoverPct: Math.round(18 + seed * 76),
-    precipitationMm: Number((seed * 2.8).toFixed(1)),
-    moonIlluminationPct: Math.round(14 + seed * 82),
-  };
-}
-
-
-async function resolveWaterbodyTypeFromReality(location: SelectedLocation): Promise<WaterbodyType | null> {
-  if (typeof window === 'undefined' || !window.ymaps?.geocode) {
-    return null;
-  }
-
-  try {
-    const result = await window.ymaps.geocode([location.lat, location.lng], { kind: 'hydro', results: 1 });
-    const first = result.geoObjects.get(0);
-    const rawName = first?.properties.get('name') ?? first?.properties.get('text') ?? '';
-    const name = rawName.toLowerCase();
-
-    if (name.includes('река') || name.includes('river')) {
-      return 'river';
-    }
-    if (name.includes('водохранилищ') || name.includes('reservoir')) {
-      return 'reservoir';
-    }
-    if (name.includes('пруд') || name.includes('pond')) {
-      return 'pond';
-    }
-    if (name.includes('озер') || name.includes('lake')) {
-      return 'lake';
-    }
-  } catch {
-    return null;
-  }
-
-  return null;
-}
-
 function buildPayload(
   location: SelectedLocation,
   timestamp: Date,
   weather: WeatherSnapshot,
-  waterbodyType: WaterbodyType,
 ): BiteForecastRequest {
   return {
     point: { lat: location.lat, lng: location.lng },
     timestamp: timestamp.toISOString(),
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-    waterbodyType,
     weather,
   };
 }
@@ -285,17 +235,23 @@ export function FishingDemo() {
       setForecastState((current) => ({ ...current, loading: true, error: null }));
 
       try {
-        const waterbodyType = (await resolveWaterbodyTypeFromReality(location)) ?? 'lake';
         const now = new Date();
         const realWeather = await fetchSevenDayWeather(location, { endpoint: '/api/weather/forecast' });
-        const weatherSource: ForecastState['weatherSource'] = realWeather ? 'real' : 'fallback';
+        if (!realWeather) {
+          throw new Error('Weather data unavailable');
+        }
+
+        const weatherSource: ForecastState['weatherSource'] = 'real';
 
         const requests = Array.from({ length: 7 }, async (_, dayOffset) => {
           const date = new Date(now);
           date.setDate(now.getDate() + dayOffset);
 
-          const weather = realWeather?.[dayOffset] ?? estimateWeatherByCoordinates(location.lat, location.lng, dayOffset);
-          const payload = buildPayload(location, date, weather, waterbodyType);
+          const weather = realWeather[dayOffset];
+          if (!weather) {
+            throw new Error('Incomplete weather series');
+          }
+          const payload = buildPayload(location, date, weather);
           const response = await fetchBiteForecast(apiBaseUrl, payload);
 
           return {
@@ -303,7 +259,6 @@ export function FishingDemo() {
             label: formatDayLabel(date, locale),
             timestamp: date.toISOString(),
             weather: payload.weather,
-            waterbodyType: payload.waterbodyType,
             response,
           } satisfies DayForecast;
         });
@@ -318,7 +273,7 @@ export function FishingDemo() {
         if (!disposed) {
           setForecastState((current) => ({
             loading: false,
-            error: locale === 'ru' ? 'Не удалось получить прогноз на 7 дней. Проверьте API и CORS.' : 'Failed to load 7-day forecast. Check API and CORS.',
+            error: locale === 'ru' ? 'Недостаточно достоверных погодных данных для расчёта прогноза. Попробуйте позже.' : 'Not enough reliable weather data to calculate forecast. Please try again later.',
             days: current.days,
             weatherSource: current.weatherSource,
           }));
@@ -435,11 +390,9 @@ export function FishingDemo() {
 
         {forecastState.weatherSource ? (
           <div style={{ color: 'var(--text-muted)', fontSize: 12 }}>
-            {t('weather_source')}: <strong>{forecastState.weatherSource === 'real' ? t('real_weather') : t('fallback_weather')}</strong>
+            {t('weather_source')}: <strong>{t('real_weather')}</strong>
           </div>
         ) : null}
-
-        {forecastState.weatherSource === 'fallback' ? <InlineNotice text={t('fallback_weather_warning')} tone="error" /> : null}
 
         {forecastState.loading && forecastState.days.length === 0 ? <StateCard title={t('state_loading_title')} body={t('state_loading_body')} /> : null}
         {forecastState.loading && forecastState.days.length > 0 ? <InlineNotice text={t('updating_forecast')} /> : null}
@@ -532,7 +485,6 @@ export function FishingDemo() {
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: 8 }}>
-              <MiniDetail label={t('waterbody_type')} value={selectedDay.waterbodyType} />
               <MiniDetail label={t('temperature')} value={`${selectedDay.weather.airTemperatureC}°C`} />
               <MiniDetail label={t('pressure')} value={`${selectedDay.weather.pressureHpa} hPa`} />
               <MiniDetail label={t('wind')} value={`${selectedDay.weather.windSpeedMps} м/с`} />
