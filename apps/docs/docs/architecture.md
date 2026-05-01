@@ -95,6 +95,8 @@ sidebar_position: 4
 - Если внешний погодный источник недоступен, web показывает error-state и не строит synthetic-прогноз.
 - В текущем контракте расчёта не используется `moonIlluminationPct`.
 - Карта строится через provider adapter pattern (`yandex` / `google`).
+- Доменный пакет `domain-bite-forecast` не зависит от `shared-zod`: валидация контрактов выполняется на boundary-слоях (API controller и client).
+- Пользовательское `explanation` формируется в API boundary, а не внутри domain-ядра.
 
 ## Кросс-сервисные аспекты
 

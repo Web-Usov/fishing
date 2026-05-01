@@ -50,6 +50,7 @@ title: API
   Это даёт клиенту `400 Bad Request` с деталями, основанными на `.flatten()`.
 - После успешного парсинга контроллер вызывает `ForecastService.calculate(...)`, а сервис делегирует расчёт в `calculateBiteForecast` из `@fishing/domain-bite-forecast`.
 - Текущий контракт запроса не содержит `waterbodyType`: расчёт строится на координате, времени/таймзоне и погодном снимке.
+- Domain-результат возвращает структурированные факторы и `strongestFactorId`; текстовое `explanation` собирается в `ForecastController` как boundary-адаптация под публичный контракт.
 - Результат обязательно проходит через `biteForecastResponseSchema.parse(...)`.
   Если результат не соответствует публичному контракту, возникает серверная ошибка (в текущей модели — `500`).
 
@@ -75,7 +76,7 @@ title: API
 ## Тестирование и качество
 
 - build/typecheck обязательны;
-- e2e smoke для forecast endpoint;
+- unit/integration для `ForecastService` и `ForecastController` + e2e smoke для forecast endpoint;
 - новые доменные модули должны приходить с контрактными и runtime-проверками.
 
 ## Что важно при развитии

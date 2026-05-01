@@ -72,10 +72,13 @@ Web реализует пользовательский цикл выбора т
 
 - `apps/api` для расчёта прогноза;
 - `@fishing/api-client`;
+- `@fishing/shared-zod` (контрактные типы и единая валидация координаты);
 - `@fishing/shared-ui`;
 - map provider adapters (`yandex`/`google`) и browser runtime.
 
 Доменный прогноз запрашивается через `apps/api` и `@fishing/api-client`, а weather-proxy в web отвечает только за погодные данные и не содержит доменную логику прогноза клёва.
+
+В текущем потоке web не дублирует ad-hoc типы request/response прогноза: используются shared-контрактные типы.
 
 ## Инфраструктура
 
