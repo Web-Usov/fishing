@@ -1,11 +1,39 @@
-import {
-  biteForecastResponseSchema,
-  type BiteForecastFactor,
-  type BiteForecastRequest,
-  type BiteForecastResponse,
-} from '@fishing/shared-zod';
+export type BiteForecastLevel = 'poor' | 'moderate' | 'good' | 'excellent';
+export type ForecastConfidence = 'low' | 'medium' | 'high';
 
-export function calculateBiteForecast(input: BiteForecastRequest): BiteForecastResponse {
+export type BiteForecastFactor = {
+  id: string;
+  label: string;
+  impact: number;
+};
+
+export type WeatherSnapshot = {
+  pressureHpa: number;
+  airTemperatureC: number;
+  windSpeedMps: number;
+  cloudCoverPct: number;
+  precipitationMm: number;
+};
+
+export type BiteForecastInput = {
+  point: {
+    lat: number;
+    lng: number;
+  };
+  timestamp: string;
+  timezone: string;
+  weather: WeatherSnapshot;
+};
+
+export type BiteForecastResult = {
+  score: number;
+  level: BiteForecastLevel;
+  confidence: ForecastConfidence;
+  factors: BiteForecastFactor[];
+  strongestFactorId: string;
+};
+
+export function calculateBiteForecast(input: BiteForecastInput): BiteForecastResult {
   const factors: BiteForecastFactor[] = [
     scorePressure(input.weather.pressureHpa),
     scoreWind(input.weather.windSpeedMps),
@@ -26,13 +54,13 @@ export function calculateBiteForecast(input: BiteForecastRequest): BiteForecastR
     Math.abs(factor.impact) > Math.abs(strongest.impact) ? factor : strongest,
   );
 
-  return biteForecastResponseSchema.parse({
+  return {
     score,
     level,
     confidence,
     factors,
-    explanation: `${level === 'excellent' ? 'Очень активный' : level === 'good' ? 'Хороший' : level === 'moderate' ? 'Средний' : 'Слабый'} клёв: ключевой фактор — ${strongestFactor.label.toLowerCase()}.`,
-  });
+    strongestFactorId: strongestFactor.id,
+  };
 }
 
 function scorePressure(pressureHpa: number): BiteForecastFactor {

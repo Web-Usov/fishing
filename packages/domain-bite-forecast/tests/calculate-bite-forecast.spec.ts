@@ -67,7 +67,8 @@ describe('calculateBiteForecast', () => {
     expect(['good', 'excellent']).toContain(result.level);
     expect(getFactorImpact(result, 'timeOfDay')).toBe(9);
     expect(getFactorImpact(result, 'season')).toBe(4);
-    expect(result.explanation).toMatch(/клёв: ключевой фактор — .+\./i);
+    expect(typeof result.strongestFactorId).toBe('string');
+    expect(result.strongestFactorId.length).toBeGreaterThan(0);
   });
 
   it('returns near-mid score at summer midday and confidence is not high', () => {
@@ -180,5 +181,15 @@ describe('calculateBiteForecast', () => {
     expect(getFactorImpact(september, 'season')).toBe(4);
     expect(getFactorImpact(december, 'season')).toBe(-3);
     expect(getFactorLabel(december, 'season')).toContain('Зим');
+  });
+
+  it('falls back to UTC hour when timezone is invalid', () => {
+    const result = calculateBiteForecast({
+      ...makeBaseRequest(),
+      timestamp: '2026-10-19T02:00:00.000Z',
+      timezone: 'Invalid/Timezone',
+    });
+
+    expect(getFactorImpact(result, 'timeOfDay')).toBe(-9);
   });
 });
