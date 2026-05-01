@@ -14,6 +14,8 @@ module.exports = {
     'architecture',
     'shared-code-plan',
     'agent-workflow/omo-playbook',
+    'agent-workflow/clean-code',
+    'agent-workflow/clean-architecture',
     {
       type: 'category',
       label: 'Сервисы',

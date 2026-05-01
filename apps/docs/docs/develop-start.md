@@ -11,6 +11,8 @@ title: С чего начать (Develop)
 - [Общая архитектура системы](architecture.md)
 - [Shared-слой и договорённости](shared-code-plan.md)
 - [OmO Agent Workflow Playbook](agent-workflow/omo-playbook.md)
+- [Clean Code Standard](agent-workflow/clean-code.md)
+- [Clean Architecture Standard](agent-workflow/clean-architecture.md)
 - Документация по сервисам: [API](services/api.md), [Web](services/web.md), [Mobile](services/mobile.md), [Admin](services/admin.md), [Docs](services/docs.md), [Postgres](services/postgres.md)
 - [Plans Index](delivery/plans/index.md) — как запускать и вести delivery-потоки через `PLAN.md` и `REVIEW.md`
 

@@ -19,6 +19,8 @@
 - `mvp-scope.md` — текущая граница поставляемого MVP
 - `architecture.md` — общая техническая картина
 - `shared-code-plan.md` — границы shared-слоя
+- `agent-workflow/clean-code.md` — обязательный стандарт чистого кода
+- `agent-workflow/clean-architecture.md` — обязательный стандарт архитектурных границ
 - `services/*` — отдельные документы по сервисам
 - `delivery/roadmap.md` — большие этапы развития
 - `delivery/plans/index.md` — единый индекс delivery-потоков
@@ -26,8 +28,8 @@
 
 Навигационно docs разделены на два режима:
 
-- **Product**: `index.md`, `product-start.md`, `product-overview.md`, `mvp-scope.md`, `delivery/roadmap.md`, `delivery/plans/index.md`
-- **Develop**: `develop-start.md`, `architecture.md`, `shared-code-plan.md`, `services/*`, `delivery/plans/index.md`
+- **Product**: `index.md`, `product-start.md`, `product-overview.md`, `mvp-scope.md`, `delivery/roadmap.md`
+- **Develop**: `develop-start.md`, `architecture.md`, `shared-code-plan.md`, `agent-workflow/clean-code.md`, `agent-workflow/clean-architecture.md`, `services/*`, `delivery/plans/index.md`
 
 ## 3. Что обновлять при изменениях
 
@@ -85,3 +87,12 @@ pnpm docker:dev
 ## 8. Практическое правило
 
 Документация здесь — не «описание после факта», а рабочая система управления проектом. Если изменение нельзя уверенно отразить в этой структуре, значит задача ещё не до конца осмыслена.
+
+## 9. Обязательные стандарты для кодовых задач
+
+Если в рамках work cycle меняется код (а не только docs), агент обязан следовать:
+
+- `apps/docs/docs/agent-workflow/clean-code.md`
+- `apps/docs/docs/agent-workflow/clean-architecture.md`
+
+Отклонения допускаются только при явной фиксации в `delivery/plans/<plan>/PLAN.md` и последующей проверке в `REVIEW.md`.

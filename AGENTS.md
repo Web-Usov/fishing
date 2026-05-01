@@ -13,6 +13,8 @@
   - `apps/docs/docs/mvp-scope.md`
   - `apps/docs/docs/architecture.md`
   - `apps/docs/docs/shared-code-plan.md`
+  - `apps/docs/docs/agent-workflow/clean-code.md`
+  - `apps/docs/docs/agent-workflow/clean-architecture.md`
   - `apps/docs/docs/delivery/roadmap.md`
   - `apps/docs/docs/delivery/plans/index.md`
   - `apps/docs/docs/delivery/plans/*`
@@ -56,6 +58,15 @@
 8. Для завершённого потока оформить `delivery/plans/<plan>/REVIEW.md`.
 9. Выполнить проверку (`docs:build`, а при необходимости `typecheck/build/test`).
 10. В финальном отчёте явно перечислить, какие документы были обновлены.
+
+### Обязательный стандарт для кодовых задач
+
+Если задача затрагивает код, агент обязан следовать:
+
+- `apps/docs/docs/agent-workflow/clean-code.md`
+- `apps/docs/docs/agent-workflow/clean-architecture.md`
+
+Если требуется осознанное отклонение, оно фиксируется в `delivery/plans/<plan>/PLAN.md` и валидируется в `REVIEW.md`.
 
 ## 4. Как агенту работать с roadmap и delivery plans
 
