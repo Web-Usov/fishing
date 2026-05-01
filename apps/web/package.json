@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@fishing/api-client": "workspace:*",
+    "@fishing/shared-zod": "workspace:*",
     "@fishing/shared-ui": "workspace:*",
     "next": "^15.5.4",
     "react": "^19.1.1",

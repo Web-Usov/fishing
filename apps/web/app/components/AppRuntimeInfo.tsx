@@ -3,14 +3,7 @@
 import { useEffect, useState } from 'react';
 
 import { useLocale } from './locale/LocaleProvider';
-
-function resolveApiBaseUrl() {
-  if (typeof window !== 'undefined') {
-    return `${window.location.protocol}//${window.location.hostname}:3001`;
-  }
-
-  return 'http://127.0.0.1:3001';
-}
+import { resolveApiBaseUrl } from './runtime';
 
 export function AppRuntimeInfo() {
   const { t } = useLocale();

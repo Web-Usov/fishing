@@ -3,50 +3,17 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { fetchBiteForecast, fetchSevenDayWeather } from '@fishing/api-client';
+import type {
+  BiteForecastRequest,
+  BiteForecastResponse,
+  ForecastConfidence,
+  WeatherSnapshot,
+} from '@fishing/shared-zod';
 
 import { useLocale } from './locale/LocaleProvider';
 import { ProviderMap } from './map/ProviderMap';
 import type { MapPoint, MapProvider } from './map/types';
-
-type ForecastLevel = 'poor' | 'moderate' | 'good' | 'excellent';
-type ForecastConfidence = 'low' | 'medium' | 'high';
-
-type ForecastFactor = {
-  id: string;
-  label: string;
-  impact: number;
-};
-
-type WeatherSnapshot = {
-  pressureHpa: number;
-  airTemperatureC: number;
-  windSpeedMps: number;
-  cloudCoverPct: number;
-  precipitationMm: number;
-};
-
-type BiteForecastRequest = {
-  point: {
-    lat: number;
-    lng: number;
-  };
-  timestamp: string;
-  timezone: string;
-  weather: WeatherSnapshot;
-};
-
-type BiteForecastResponse = {
-  score: number;
-  level: ForecastLevel;
-  confidence: ForecastConfidence;
-  factors: ForecastFactor[];
-  explanation: string;
-};
-
-type SelectedLocation = {
-  lat: number;
-  lng: number;
-};
+import { parseLocationFromUrl, resolveApiBaseUrl, type SelectedLocation } from './runtime';
 
 type DayForecast = {
   dayOffset: number;
@@ -67,7 +34,7 @@ const MAP_PROVIDER: MapProvider = process.env.NEXT_PUBLIC_MAP_PROVIDER === 'goog
 const YANDEX_MAPS_API_KEY = process.env.NEXT_PUBLIC_YANDEX_MAPS_API_KEY;
 const DEFAULT_CENTER: [number, number] = [59.939095, 30.315868];
 
-const levelColor: Record<ForecastLevel, string> = {
+const levelColor: Record<BiteForecastResponse['level'], string> = {
   poor: '#dc2626',
   moderate: '#d97706',
   good: '#059669',
@@ -95,48 +62,16 @@ const factorDescription: Record<string, { ru: string; en: string }> = {
     ru: 'Осадки влияют на мутность и давление, что может как помогать, так и мешать клёву.',
     en: 'Precipitation affects turbidity and pressure, sometimes helping, sometimes harming bite.',
   },
-  moon: {
-    ru: 'Лунная освещённость может влиять на кормовую активность, особенно в тёмное время.',
-    en: 'Moon illumination may impact feeding activity, especially at night.',
+  timeOfDay: {
+    ru: 'Суточный ритм меняет активность рыбы: пики чаще приходятся на утро и вечер.',
+    en: 'Daily rhythm affects fish activity: peaks are usually in morning and evening.',
   },
-  waterbody: {
-    ru: 'Тип водоёма задаёт базовый профиль поведения рыбы для расчёта прогноза.',
-    en: 'Waterbody type sets baseline fish behavior profile for forecast calculation.',
+  season: {
+    ru: 'Сезон задаёт базовую динамику активности и влияет на силу отклика на погоду.',
+    en: 'Season sets baseline activity dynamics and influences weather response strength.',
   },
 };
 
-function resolveApiBaseUrl() {
-  if (typeof window !== 'undefined') {
-    return `${window.location.protocol}//${window.location.hostname}:3001`;
-  }
-
-  return 'http://127.0.0.1:3001';
-}
-
-function parseLocationFromUrl(): SelectedLocation | null {
-  if (typeof window === 'undefined') {
-    return null;
-  }
-
-  const url = new URL(window.location.href);
-  const latRaw = url.searchParams.get('lat');
-  const lngRaw = url.searchParams.get('lng');
-  if (!latRaw || !lngRaw) {
-    return null;
-  }
-
-  const lat = Number(latRaw);
-  const lng = Number(lngRaw);
-  if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-    return null;
-  }
-
-  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-    return null;
-  }
-
-  return { lat, lng };
-}
 
 function updateLocationInUrl(location: SelectedLocation | null) {
   if (typeof window === 'undefined') {
@@ -236,7 +171,10 @@ export function FishingDemo() {
 
       try {
         const now = new Date();
-        const realWeather = await fetchSevenDayWeather(location, { endpoint: '/api/weather/forecast' });
+        const realWeather = await fetchSevenDayWeather(location, {
+          endpoint: '/api/weather/forecast',
+          provider: 'proxy',
+        });
         if (!realWeather) {
           throw new Error('Weather data unavailable');
         }
@@ -296,7 +234,7 @@ export function FishingDemo() {
     high: t('high'),
   };
 
-  const levelLabels: Record<ForecastLevel, string> = {
+  const levelLabels: Record<BiteForecastResponse['level'], string> = {
     poor: t('level_poor'),
     moderate: t('level_moderate'),
     good: t('level_good'),

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { geoPointSchema } from '@fishing/shared-zod';
 
 function buildOpenMeteoUrl(lat: number, lng: number) {
   const params = new URLSearchParams({
@@ -21,12 +22,16 @@ function buildOpenMeteoUrl(lat: number, lng: number) {
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const lat = Number(searchParams.get('lat'));
-  const lng = Number(searchParams.get('lng'));
+  const coordinates = geoPointSchema.safeParse({
+    lat: Number(searchParams.get('lat')),
+    lng: Number(searchParams.get('lng')),
+  });
 
-  if (!Number.isFinite(lat) || !Number.isFinite(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+  if (!coordinates.success) {
     return NextResponse.json({ error: 'Invalid coordinates' }, { status: 400 });
   }
+
+  const { lat, lng } = coordinates.data;
 
   try {
     const response = await fetch(buildOpenMeteoUrl(lat, lng), {
