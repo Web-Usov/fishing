@@ -11,8 +11,8 @@ title: С чего начать (Product)
 - [Что это за продукт?](product-overview.md)
 - [Что входит в текущий MVP?](mvp-scope.md)
 - [Куда продукт развивается дальше?](delivery/roadmap.md)
+- [Plans Index](delivery/plans/index.md) — какие delivery-потоки уже оформлены и как продуктовые идеи превращаются в реализацию
 
 ## Что дальше
 
-- [Backlog](delivery/backlog.md) — как декомпозированы крупные пользовательские и технические блоки.
-- [Task State](delivery/task-state.md) — прозрачность текущих статусов выполнения.
+- [Plans Index](delivery/plans/index.md) — operational-статус, ownership и артефакты исполнения.

@@ -80,9 +80,9 @@ sidebar_position: 5
 - [Архитектура](architecture.md)
 - [Web](services/web.md)
 - [Mobile](services/mobile.md)
-- [Backlog](delivery/backlog.md)
+- [Plans Index](delivery/plans/index.md)
 
 ## Что читать дальше
 
-- [Task State](delivery/task-state.md) — какие потоки сейчас активны и где не пересечься.
+- [Plans Index](delivery/plans/index.md) — какие потоки сейчас активны и где не пересечься.
 - [Roadmap](delivery/roadmap.md) — как shared-слой поддерживает этапность развития.

@@ -14,8 +14,8 @@
   - `apps/docs/docs/architecture.md`
   - `apps/docs/docs/shared-code-plan.md`
   - `apps/docs/docs/delivery/roadmap.md`
-  - `apps/docs/docs/delivery/backlog.md`
-  - `apps/docs/docs/delivery/task-state.md`
+  - `apps/docs/docs/delivery/plans/index.md`
+  - `apps/docs/docs/delivery/plans/*`
 - Если описание в коде, заметках или root-level документах расходится с `apps/docs/docs/*`, приоритет у `apps/docs/docs/*`.
 
 ## 2. Карта репозитория
@@ -48,31 +48,34 @@
    - продукт/сценарий;
    - архитектура/infra;
    - конкретный сервис;
-   - roadmap/backlog/task-state.
-4. Проверить `delivery/task-state.md`, нет ли пересечения с уже активным потоком.
-5. Выполнить изменение в коде или документации.
-6. Обновить релевантные документы в `apps/docs/docs/*` в той же work cycle.
-7. Выполнить проверку (`docs:build`, а при необходимости `typecheck/build/test`).
-8. В финальном отчёте явно перечислить, какие документы были обновлены.
+   - roadmap/plans.
+4. Проверить `delivery/plans/index.md`, нет ли пересечения с уже активным потоком.
+5. Для новой значимой ветки работы создать или обновить `delivery/plans/<plan>/PLAN.md`.
+6. Выполнить изменение в коде или документации.
+7. Обновить релевантные документы в `apps/docs/docs/*` в той же work cycle.
+8. Для завершённого потока оформить `delivery/plans/<plan>/REVIEW.md`.
+9. Выполнить проверку (`docs:build`, а при необходимости `typecheck/build/test`).
+10. В финальном отчёте явно перечислить, какие документы были обновлены.
 
-## 4. Как агенту работать с roadmap/backlog/task-state
+## 4. Как агенту работать с roadmap и delivery plans
 
 - `roadmap.md` — большие этапы, не для ежедневной детализации.
-- `backlog.md` — декомпозиция на крупные user stories и технические блоки.
-- `task-state.md` — актуальное состояние и точка координации между параллельными сессиями.
+- `delivery/plans/index.md` — актуальная карта активных и завершённых delivery-потоков.
+- `delivery/plans/<plan>/PLAN.md` — operational-план потока.
+- `delivery/plans/<plan>/REVIEW.md` — итоговый review и evidence.
 
 Если задача:
 
 - меняет продуктовый сценарий — обновить `mvp-scope.md` и/или `product-overview.md`;
 - меняет архитектуру, runtime, infra или связи сервисов — обновить `architecture.md` и service docs;
-- меняет decomposition, sequencing или ownership — обновить `roadmap.md`, `backlog.md`, `task-state.md`.
+- меняет decomposition, sequencing или ownership — обновить `roadmap.md`, `delivery/plans/index.md` и релевантный `PLAN.md`.
 
 ## 5. Параллельная работа агентов
 
-- По возможности одна агент-сессия должна брать один логический блок или одну подзадачу из backlog.
+- По возможности одна агент-сессия должна брать один логический поток и один `PLAN.md`.
 - Для многосервисных изменений ownership делится по сервисам или по отдельным документам/модулям.
-- Перед началом новой параллельной ветки агент обязан проверить, что не конфликтует с существующим task-state.
-- Если агент берёт новый поток, он должен явно обновить `task-state.md`.
+- Перед началом новой параллельной ветки агент обязан проверить, что не конфликтует с существующим `delivery/plans/index.md`.
+- Если агент берёт новый поток, он должен явно создать или обновить соответствующий `PLAN.md` и запись в `delivery/plans/index.md`.
 
 ## 6. Что проверять перед завершением
 

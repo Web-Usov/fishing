@@ -55,5 +55,4 @@ title: Postgres
 - [Архитектура](../architecture.md)
 - [API](api.md)
 - [Admin](admin.md)
-- [Backlog](../delivery/backlog.md)
-- [Task State](../delivery/task-state.md)
+- [Plans Index](../delivery/plans/index.md)

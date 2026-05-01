@@ -4,7 +4,7 @@ module.exports = {
     {
       type: 'category',
       label: 'Product',
-      items: ['product-start', 'product-overview', 'mvp-scope', 'domain-model', 'bite-forecast-model', 'catch-journal', 'delivery/roadmap']
+      items: ['product-start', 'product-overview', 'mvp-scope', 'domain-model', 'bite-forecast-model', 'catch-journal']
     },
     {
       type: 'category',
@@ -22,7 +22,7 @@ module.exports = {
     {
       type: 'category',
       label: 'Планирование и delivery',
-      items: ['delivery/backlog', 'delivery/task-state']
+      items: ['delivery/roadmap', 'delivery/plans/index', 'delivery/plans/templates']
     }
       ]
     }

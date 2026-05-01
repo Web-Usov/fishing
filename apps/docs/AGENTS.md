@@ -21,13 +21,13 @@
 - `shared-code-plan.md` — границы shared-слоя
 - `services/*` — отдельные документы по сервисам
 - `delivery/roadmap.md` — большие этапы развития
-- `delivery/backlog.md` — декомпозиция на большие блоки
-- `delivery/task-state.md` — текущее состояние работ и параллельных потоков
+- `delivery/plans/index.md` — единый индекс delivery-потоков
+- `delivery/plans/*` — канонические `PLAN.md` / `REVIEW.md` по каждому значимому потоку
 
 Навигационно docs разделены на два режима:
 
-- **Product**: `index.md`, `product-start.md`, `product-overview.md`, `mvp-scope.md`, `delivery/roadmap.md`
-- **Develop**: `develop-start.md`, `architecture.md`, `shared-code-plan.md`, `services/*`, `delivery/backlog.md`, `delivery/task-state.md`
+- **Product**: `index.md`, `product-start.md`, `product-overview.md`, `mvp-scope.md`, `delivery/roadmap.md`, `delivery/plans/index.md`
+- **Develop**: `develop-start.md`, `architecture.md`, `shared-code-plan.md`, `services/*`, `delivery/plans/index.md`
 
 ## 3. Что обновлять при изменениях
 
@@ -35,7 +35,7 @@
 - Меняется система, runtime, infra, связи сервисов → `architecture.md` + service docs
 - Меняются границы переиспользования → `shared-code-plan.md`
 - Меняется конкретный сервис → соответствующий файл в `services/*`
-- Меняется последовательность разработки, decomposition или ownership → `delivery/roadmap.md`, `delivery/backlog.md`, `delivery/task-state.md`
+- Меняется последовательность разработки, decomposition или ownership → `delivery/roadmap.md`, `delivery/plans/index.md` и релевантный `delivery/plans/<plan>/PLAN.md`
 - Меняется навигация по docs → `index.md` и `sidebars.js`
 
 ## 4. Правила оформления
@@ -45,13 +45,14 @@
 - Технические имена сервисов, файлов, пакетов и библиотек оставлять в оригинале.
 - Не плодить дубли: обновлять существующий релевантный документ, а не создавать конкурирующую правду.
 
-## 5. Правила для roadmap/backlog/task-state
+## 5. Правила для roadmap и plan-first delivery
 
 - `roadmap` хранит только большие этапы.
-- `backlog` хранит крупные user stories и техническую декомпозицию.
-- `task-state` хранит актуальный статус и нужен для координации параллельных агент-сессий.
+- `delivery/plans/index.md` хранит актуальную карту активных и завершённых потоков.
+- `delivery/plans/<plan>/PLAN.md` хранит operational-план конкретного потока.
+- `delivery/plans/<plan>/REVIEW.md` фиксирует итоговую проверку и evidence.
 
-Если агент начинает новую значимую ветку работы, он должен обновить `task-state.md`.
+Если агент начинает новую значимую ветку работы, он должен создать или обновить `PLAN.md` и отразить поток в `delivery/plans/index.md`.
 
 ## 6. Проверка перед завершением
 

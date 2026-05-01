@@ -12,9 +12,10 @@ title: С чего начать (Develop)
 - [Shared-слой и договорённости](shared-code-plan.md)
 - [OmO Agent Workflow Playbook](agent-workflow/omo-playbook.md)
 - Документация по сервисам: [API](services/api.md), [Web](services/web.md), [Mobile](services/mobile.md), [Admin](services/admin.md), [Docs](services/docs.md), [Postgres](services/postgres.md)
-- [Как устроена разработка и параллельная работа](delivery/backlog.md), [Task State](delivery/task-state.md)
+- [Plans Index](delivery/plans/index.md) — как запускать и вести delivery-потоки через `PLAN.md` и `REVIEW.md`
 
 ## Что дальше
 
 - [Roadmap](delivery/roadmap.md) — стратегические этапы, полезны для понимания приоритетов при проектировании.
+- [OmO Agent Workflow Playbook](agent-workflow/omo-playbook.md) — operational-правила работы агентов поверх новой plan-first модели.
 - [Описание продукта](product-overview.md) — продуктовый контекст для технических решений.

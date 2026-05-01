@@ -66,5 +66,4 @@ Admin отвечает за внутренние процессы качеств
 - [Архитектура](../architecture.md)
 - [API](api.md)
 - [Postgres](postgres.md)
-- [Backlog](../delivery/backlog.md)
-- [Task State](../delivery/task-state.md)
+- [Plans Index](../delivery/plans/index.md)

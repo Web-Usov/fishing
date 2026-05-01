@@ -4,11 +4,11 @@ title: Roadmap
 
 # Roadmap
 
-Roadmap фиксирует крупные этапы развития продукта. Это стратегический документ: он показывает последовательность больших блоков, а не заменяет backlog.
+Roadmap фиксирует крупные этапы развития продукта. Это стратегический документ: он показывает последовательность больших блоков и не заменяет operational-планы.
 
 **Для кого:** Product + Develop.
 
-**Навигация внутри delivery:** [Backlog](backlog.md) · [Task State](task-state.md)
+**Навигация внутри delivery:** [Plans Index](plans/index.md)
 
 ## Этап 1. Map-first MVP
 
@@ -37,5 +37,5 @@ Roadmap фиксирует крупные этапы развития проду
 ## Как использовать roadmap
 
 - roadmap отвечает за большие этапы;
-- для разбиения на конкретные блоки использовать [Backlog](backlog.md);
-- для текущего статуса — [Task State](task-state.md).
+- для конкретной реализации создавать и вести отдельные `delivery/plans/<plan>/PLAN.md`;
+- для текущего operational-статуса использовать [Plans Index](plans/index.md).

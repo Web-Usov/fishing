@@ -17,7 +17,7 @@ import TabItem from '@theme/TabItem';
 - Каноническая документация проекта находится в `apps/docs/docs/*`; если есть расхождение с устными договорённостями, приоритет у docs.
 - Не создавайте дублирующую правду: при изменениях обновляйте релевантные документы в этой структуре.
 - Если меняется код, продуктовый сценарий, архитектура или delivery-процесс, это должно быть отражено в docs в той же work cycle.
-- Для статуса параллельной работы и ownership всегда сверяйтесь с `delivery/task-state.md`.
+- Для активной работы и ownership всегда сверяйтесь с `delivery/plans/index.md` и конкретным `PLAN.md` потока.
 
 ## Start here
 
@@ -29,8 +29,7 @@ import TabItem from '@theme/TabItem';
 - [Что это за продукт?](product-overview.md)
 - [Что входит в текущий MVP?](mvp-scope.md)
 - [Куда продукт развивается?](delivery/roadmap.md)
-- [Backlog](delivery/backlog.md) — декомпозиция на пользовательские и технические блоки
-- [Task State](delivery/task-state.md) — прозрачность статусов
+- [Plans Index](delivery/plans/index.md) — какие delivery-потоки уже сформированы и как они проходят lifecycle
 
 </TabItem>
   <TabItem value="develop" label="Develop">
@@ -41,7 +40,7 @@ import TabItem from '@theme/TabItem';
 - [Shared-слой и договорённости](shared-code-plan.md)
 - [OmO Agent Workflow Playbook](agent-workflow/omo-playbook.md)
 - Сервисы: [API](services/api.md), [Web](services/web.md), [Mobile](services/mobile.md), [Admin](services/admin.md), [Docs](services/docs.md), [Postgres](services/postgres.md)
-- [Backlog](delivery/backlog.md) и [Task State](delivery/task-state.md) — параллельная работа
+- [Plans Index](delivery/plans/index.md) — plan-first execution через `PLAN.md` и `REVIEW.md`
 - [Roadmap](delivery/roadmap.md) — стратегический контекст
 
 </TabItem>
@@ -54,7 +53,7 @@ import TabItem from '@theme/TabItem';
 1. Что мы строим как продукт и для кого.
 2. Как устроена система на уровне сервисов, инфраструктуры и связей.
 3. Как устроен каждый сервис отдельно.
-4. Как декомпозирована разработка и какие блоки можно брать в параллельные агент-сессии.
+4. Как декомпозирована разработка и какие планы можно брать в параллельные агент-сессии.
 5. Какие документы агент обязан обновлять вместе с кодом.
 
 ## Куда смотреть
@@ -82,8 +81,8 @@ import TabItem from '@theme/TabItem';
 ### Планирование и delivery
 
 - [Roadmap](delivery/roadmap.md) — большие этапы развития.
-- [Backlog](delivery/backlog.md) — декомпозиция на продуктовые блоки и технические задачи.
-- [Task State](delivery/task-state.md) — текущее состояние работ и формат параллельного исполнения.
+- [Plans Index](delivery/plans/index.md) — текущие delivery-потоки и правила их ведения.
+- [Plan & Review Templates](delivery/plans/templates.md) — шаблоны `PLAN.md` и `REVIEW.md`.
 
 ## Принцип ведения документации
 

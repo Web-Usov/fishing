@@ -93,5 +93,4 @@ title: API
 
 - [Архитектура](../architecture.md)
 - [План разделяемого кода](../shared-code-plan.md)
-- [Backlog](../delivery/backlog.md)
-- [Task State](../delivery/task-state.md)
+- [Plans Index](../delivery/plans/index.md)

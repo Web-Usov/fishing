@@ -108,5 +108,4 @@ Web реализует пользовательский цикл выбора т
 - [Архитектура](../architecture.md)
 - [План разделяемого кода](../shared-code-plan.md)
 - [API](api.md)
-- [Backlog](../delivery/backlog.md)
-- [Task State](../delivery/task-state.md)
+- [Plans Index](../delivery/plans/index.md)
