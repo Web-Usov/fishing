@@ -4,7 +4,8 @@
   "scripts": {
     "build": "next build",
     "dev": "next dev",
-    "test": "node -e \"console.log('No tests yet for web')\"",
+    "e2e:smoke": "playwright test -c playwright.config.ts e2e/forecast-download-smoke.spec.ts",
+    "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "tsc -p tsconfig.json --noEmit"
   },
@@ -17,5 +18,12 @@
     "react-dom": "^19.1.1",
     "react-native-web": "^0.21.2",
     "zod": "^4.1.11"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.51.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "jsdom": "^27.0.1",
+    "vitest": "^3.2.4"
   }
 }

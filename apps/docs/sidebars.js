@@ -24,7 +24,21 @@ module.exports = {
     {
       type: 'category',
       label: 'Планирование и delivery',
-      items: ['delivery/roadmap', 'delivery/plans/index', 'delivery/plans/templates']
+      items: [
+        'delivery/roadmap',
+        'delivery/plans/index',
+        'delivery/plans/templates',
+        {
+          type: 'category',
+          label: 'Текущие планы',
+          items: [
+            'delivery/plans/2026-05-clean-standards-remediation/PLAN',
+            'delivery/plans/2026-05-clean-standards-remediation/REVIEW',
+            'delivery/plans/2026-05-forecast-production-hardening/PLAN',
+            'delivery/plans/2026-05-forecast-production-hardening/REVIEW'
+          ]
+        }
+      ]
     }
       ]
     }

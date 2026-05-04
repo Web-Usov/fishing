@@ -10,6 +10,7 @@ import type {
   WeatherSnapshot,
 } from '@fishing/shared-zod';
 
+import { buildForecastMarkdownReport } from './forecast-report';
 import { useLocale } from './locale/LocaleProvider';
 import { ProviderMap } from './map/ProviderMap';
 import type { MapPoint, MapProvider } from './map/types';
@@ -113,6 +114,47 @@ function formatDayLabel(date: Date, locale: 'ru' | 'en') {
   }).format(date);
 }
 
+const REQUIRED_DAY_OFFSETS = [0, 1, 2, 3, 4, 5, 6] as const;
+
+function sanitizeFilenamePart(value: string) {
+  return value
+    .trim()
+    .replace(/[^a-zA-Z0-9._-]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
+function buildReportFilename(params: {
+  prefix: string;
+  lat: number;
+  lng: number;
+  locale: 'ru' | 'en';
+  generatedAt: Date;
+}) {
+  const datePart = params.generatedAt.toISOString().slice(0, 10);
+  const raw = `${params.prefix}-${params.lat.toFixed(5)}-${params.lng.toFixed(5)}-${datePart}-${params.locale}`;
+  const safeBaseName = sanitizeFilenamePart(raw) || 'forecast-report';
+  return `${safeBaseName}.md`;
+}
+
+function downloadMarkdownFile(content: string, filename: string) {
+  const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+  const objectUrl = URL.createObjectURL(blob);
+
+  try {
+    const anchor = document.createElement('a');
+    anchor.href = objectUrl;
+    anchor.download = filename;
+    anchor.rel = 'noopener';
+    anchor.style.display = 'none';
+    document.body.append(anchor);
+    anchor.click();
+    anchor.remove();
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
+}
+
 export function FishingDemo() {
   const { locale, t } = useLocale();
   const [apiBaseUrl, setApiBaseUrl] = useState('');
@@ -126,6 +168,7 @@ export function FishingDemo() {
   });
   const [selectedDayIndex, setSelectedDayIndex] = useState(0);
   const [expandedFactorId, setExpandedFactorId] = useState<string | null>(null);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
 
   useEffect(() => {
     setApiBaseUrl(resolveApiBaseUrl());
@@ -211,7 +254,7 @@ export function FishingDemo() {
         if (!disposed) {
           setForecastState((current) => ({
             loading: false,
-            error: locale === 'ru' ? 'Недостаточно достоверных погодных данных для расчёта прогноза. Попробуйте позже.' : 'Not enough reliable weather data to calculate forecast. Please try again later.',
+            error: t('forecast_data_unavailable_error'),
             days: current.days,
             weatherSource: current.weatherSource,
           }));
@@ -224,9 +267,85 @@ export function FishingDemo() {
     return () => {
       disposed = true;
     };
-  }, [apiBaseUrl, selectedLocation, locale]);
+  }, [apiBaseUrl, selectedLocation, locale, t]);
 
   const selectedDay = forecastState.days[selectedDayIndex] ?? null;
+  const hasCompleteSevenDayForecast = useMemo(() => {
+    if (forecastState.days.length !== REQUIRED_DAY_OFFSETS.length) {
+      return false;
+    }
+
+    const offsets = new Set(forecastState.days.map((day) => day.dayOffset));
+    return REQUIRED_DAY_OFFSETS.every((offset) => offsets.has(offset));
+  }, [forecastState.days]);
+
+  const isDownloadDisabled = !selectedLocation || !hasCompleteSevenDayForecast;
+  const reportDisabledReason = t('report_disabled_reason');
+  const disabledDownloadReason = isDownloadDisabled ? reportDisabledReason : null;
+
+  const handleDownloadMarkdown = useCallback(() => {
+    if (!selectedLocation || !hasCompleteSevenDayForecast) {
+      setDownloadError(reportDisabledReason);
+      return;
+    }
+
+    try {
+      const generatedAt = new Date();
+      const markdown = buildForecastMarkdownReport({
+        selectedLocation,
+        forecastDays: forecastState.days,
+        locale,
+        generatedAtIso: generatedAt.toISOString(),
+        labels: {
+          title: t('report_title'),
+          generatedAtLabel: t('report_generated_at_label'),
+          generatedForLabel: t('report_generated_for_label'),
+          pointLabel: t('report_point_label'),
+          latitudeLabel: t('report_latitude_label'),
+          longitudeLabel: t('report_longitude_label'),
+          waterbodyTypeLabel: t('report_waterbody_type_label'),
+          section7dLabel: t('report_7d_section_label'),
+          dayLabel: t('report_day_label'),
+          dateLabel: t('report_date_label'),
+          scoreLabel: t('report_score_label'),
+          levelLabel: t('report_level_label'),
+          confidenceLabel: t('report_confidence_label'),
+          temperatureLabel: t('report_temperature_label'),
+          pressureLabel: t('report_pressure_label'),
+          windLabel: t('report_wind_label'),
+          explanationLabel: t('report_explanation_label'),
+          factorsLabel: t('report_factors_label'),
+          disclaimerTitle: t('report_disclaimer_title'),
+          disclaimer: t('report_disclaimer'),
+          confidenceLabels: {
+            low: t('low'),
+            medium: t('medium'),
+            high: t('high'),
+          },
+          levelLabels: {
+            poor: t('level_poor'),
+            moderate: t('level_moderate'),
+            good: t('level_good'),
+            excellent: t('level_excellent'),
+          },
+        },
+      });
+
+      const filename = buildReportFilename({
+        prefix: t('report_filename_prefix'),
+        lat: selectedLocation.lat,
+        lng: selectedLocation.lng,
+        locale,
+        generatedAt,
+      });
+
+      downloadMarkdownFile(markdown, filename);
+      setDownloadError(null);
+    } catch (error) {
+      const details = error instanceof Error ? error.message : t('report_build_unknown_error');
+      setDownloadError(`${t('report_build_failed_error')} ${details}`);
+    }
+  }, [forecastState.days, hasCompleteSevenDayForecast, locale, reportDisabledReason, selectedLocation, t]);
 
   const confidenceLabels: Record<ForecastConfidence, string> = {
     low: t('low'),
@@ -311,12 +430,58 @@ export function FishingDemo() {
           boxShadow: 'var(--shadow)',
         }}
       >
-        <div>
+        <div style={{ display: 'grid', gap: 8 }}>
           <div style={{ color: 'var(--accent)', fontSize: 11, letterSpacing: 0.7, textTransform: 'uppercase', fontWeight: 700 }}>
             {t('forecast')}
           </div>
-          <h3 style={{ margin: '6px 0 0', color: 'var(--text)', fontSize: 24 }}>{t('forecast_7d')}</h3>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+            <h3 style={{ margin: '6px 0 0', color: 'var(--text)', fontSize: 24 }}>{t('forecast_7d')}</h3>
+            <button
+              type="button"
+              onClick={handleDownloadMarkdown}
+              disabled={isDownloadDisabled}
+              data-testid="forecast-download-md-btn"
+              aria-label={t('report_title')}
+              title={disabledDownloadReason ?? t('report_title')}
+              style={{
+                border: '1px solid var(--border)',
+                borderRadius: 8,
+                background: isDownloadDisabled ? 'var(--panel-muted)' : 'var(--panel)',
+                color: isDownloadDisabled ? 'var(--text-muted)' : 'var(--text)',
+                width: 36,
+                height: 36,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: isDownloadDisabled ? 'not-allowed' : 'pointer',
+                opacity: isDownloadDisabled ? 0.8 : 1,
+              }}
+            >
+              <svg
+                viewBox="0 0 24 24"
+                width="18"
+                height="18"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M12 3v12" />
+                <path d="m7 11 5 5 5-5" />
+                <path d="M5 21h14" />
+              </svg>
+            </button>
+          </div>
+          {disabledDownloadReason ? (
+            <div data-testid="forecast-download-md-disabled-reason" style={{ color: 'var(--text-muted)', fontSize: 12 }}>
+              {disabledDownloadReason}
+            </div>
+          ) : null}
         </div>
+
+        {downloadError ? <InlineNotice text={downloadError} tone="error" /> : null}
 
         {!selectedLocation ? (
           <StateCard title={t('state_empty_title')} body={t('state_empty_body')} />

@@ -97,6 +97,43 @@ const dictionary = {
   },
   state_error_title: { ru: 'Не удалось обновить прогноз', en: 'Failed to refresh forecast' },
   retry: { ru: 'Повторить', en: 'Retry' },
+  report_title: { ru: 'Отчёт по прогнозу клёва', en: 'Bite forecast report' },
+  report_generated_at_label: { ru: 'Сформировано', en: 'Generated at' },
+  report_generated_for_label: { ru: 'Прогноз для', en: 'Forecast for' },
+  report_point_label: { ru: 'Точка', en: 'Point' },
+  report_latitude_label: { ru: 'Широта', en: 'Latitude' },
+  report_longitude_label: { ru: 'Долгота', en: 'Longitude' },
+  report_waterbody_type_label: { ru: 'Тип водоёма', en: 'Waterbody type' },
+  report_7d_section_label: { ru: 'Прогноз на 7 дней', en: '7-day forecast' },
+  report_day_label: { ru: 'День', en: 'Day' },
+  report_date_label: { ru: 'Дата', en: 'Date' },
+  report_score_label: { ru: 'Балл', en: 'Score' },
+  report_level_label: { ru: 'Уровень', en: 'Level' },
+  report_confidence_label: { ru: 'Уверенность', en: 'Confidence' },
+  report_temperature_label: { ru: 'Температура', en: 'Temperature' },
+  report_pressure_label: { ru: 'Давление', en: 'Pressure' },
+  report_wind_label: { ru: 'Ветер', en: 'Wind' },
+  report_explanation_label: { ru: 'Пояснение', en: 'Explanation' },
+  report_factors_label: { ru: 'Факторы', en: 'Factors' },
+  report_disclaimer_title: { ru: 'Дисклеймер', en: 'Disclaimer' },
+  report_disclaimer: {
+    ru: 'Отчёт носит информационный характер и не гарантирует результат рыбалки.',
+    en: 'This report is informational and does not guarantee fishing results.',
+  },
+  report_filename_prefix: { ru: 'otchet-prognoza-kleva', en: 'bite-forecast-report' },
+  report_disabled_reason: {
+    ru: 'Отчёт недоступен: выберите точку и дождитесь прогноза на 7 дней.',
+    en: 'Report is unavailable: pick a point and wait for a 7-day forecast.',
+  },
+  forecast_data_unavailable_error: {
+    ru: 'Недостаточно достоверных погодных данных для расчёта прогноза. Попробуйте позже.',
+    en: 'Not enough reliable weather data to calculate forecast. Please try again later.',
+  },
+  report_build_unknown_error: { ru: 'Неизвестная ошибка.', en: 'Unknown error.' },
+  report_build_failed_error: {
+    ru: 'Не удалось сформировать отчёт в Markdown.',
+    en: 'Failed to build Markdown report.',
+  },
 } satisfies Dictionary;
 
 export type LocaleKey = keyof typeof dictionary;
