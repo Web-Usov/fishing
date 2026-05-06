@@ -4,16 +4,16 @@ import { vi } from 'vitest';
 
 import { FishingDemo } from '../components/FishingDemo';
 
-const { fetchBiteForecastMock, fetchSevenDayWeatherMock } = vi.hoisted(() => ({
+const { fetchBiteForecastMock, fetchSevenDayWeatherDetailedMock } = vi.hoisted(() => ({
   fetchBiteForecastMock: vi.fn(),
-  fetchSevenDayWeatherMock: vi.fn(),
+  fetchSevenDayWeatherDetailedMock: vi.fn(),
 }));
 
 let selectedLocationFromUrl: { lat: number; lng: number } | null = { lat: 59.9391, lng: 30.3159 };
 
 vi.mock('@fishing/api-client', () => ({
   fetchBiteForecast: fetchBiteForecastMock,
-  fetchSevenDayWeather: fetchSevenDayWeatherMock,
+  fetchSevenDayWeatherDetailed: fetchSevenDayWeatherDetailedMock,
 }));
 
 vi.mock('../components/map/ProviderMap', () => ({
@@ -100,11 +100,21 @@ vi.mock('../components/locale/LocaleProvider', () => ({
 
 function makeWeatherSeries(length = 7) {
   return Array.from({ length }, (_, idx) => ({
-    pressureHpa: 1000 + idx,
-    airTemperatureC: 12 + idx,
-    windSpeedMps: 3 + idx,
-    cloudCoverPct: 40,
-    precipitationMm: 0,
+    weather: {
+      pressureHpa: 1000 + idx,
+      airTemperatureC: 12 + idx,
+      windSpeedMps: 3 + idx,
+      cloudCoverPct: 40,
+      precipitationMm: 0,
+    },
+    hourlyWeather: Array.from({ length: 24 }, (_, hour) => ({
+      timestamp: `2026-04-${String(idx + 1).padStart(2, '0')}T${String(hour).padStart(2, '0')}:00:00.000Z`,
+      pressureHpa: 1000 + idx,
+      airTemperatureC: 12 + idx,
+      windSpeedMps: 3 + idx,
+      cloudCoverPct: 40,
+      precipitationMm: 0,
+    })),
   }));
 }
 
@@ -129,7 +139,7 @@ describe('FishingDemo markdown download', () => {
   });
 
   it('downloads markdown and revokes object URL after click', async () => {
-    fetchSevenDayWeatherMock.mockResolvedValue(makeWeatherSeries(7));
+    fetchSevenDayWeatherDetailedMock.mockResolvedValue(makeWeatherSeries(7));
     fetchBiteForecastMock.mockResolvedValue(makeForecast());
 
     Object.defineProperty(URL, 'createObjectURL', {
@@ -181,7 +191,7 @@ describe('FishingDemo markdown download', () => {
   });
 
   it('keeps download disabled when forecast data is incomplete', async () => {
-    fetchSevenDayWeatherMock.mockResolvedValue(makeWeatherSeries(6));
+    fetchSevenDayWeatherDetailedMock.mockResolvedValue(makeWeatherSeries(6));
     fetchBiteForecastMock.mockResolvedValue(makeForecast('moderate'));
 
     render(<FishingDemo />);

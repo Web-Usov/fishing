@@ -2,11 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { fetchBiteForecast, fetchSevenDayWeather } from '@fishing/api-client';
+import { fetchBiteForecast, fetchSevenDayWeatherDetailed } from '@fishing/api-client';
 import type {
   BiteForecastRequest,
   BiteForecastResponse,
   ForecastConfidence,
+  WeatherHourlyEntry,
   WeatherSnapshot,
 } from '@fishing/shared-zod';
 
@@ -21,6 +22,7 @@ type DayForecast = {
   label: string;
   timestamp: string;
   weather: WeatherSnapshot;
+  hourlyWeather: WeatherHourlyEntry[];
   response: BiteForecastResponse;
 };
 
@@ -34,6 +36,7 @@ type ForecastState = {
 const MAP_PROVIDER: MapProvider = process.env.NEXT_PUBLIC_MAP_PROVIDER === 'google' ? 'google' : 'yandex';
 const YANDEX_MAPS_API_KEY = process.env.NEXT_PUBLIC_YANDEX_MAPS_API_KEY;
 const DEFAULT_CENTER: [number, number] = [59.939095, 30.315868];
+const FORECAST_DEBUG_ENABLED = process.env.NEXT_PUBLIC_FORECAST_DEBUG === '1';
 
 const levelColor: Record<BiteForecastResponse['level'], string> = {
   poor: '#dc2626',
@@ -97,12 +100,17 @@ function buildPayload(
   location: SelectedLocation,
   timestamp: Date,
   weather: WeatherSnapshot,
+  hourlyWeather: WeatherHourlyEntry[],
+  locale: 'ru' | 'en',
 ): BiteForecastRequest {
   return {
     point: { lat: location.lat, lng: location.lng },
     timestamp: timestamp.toISOString(),
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     weather,
+    hourlyWeather,
+    locale,
+    debug: FORECAST_DEBUG_ENABLED,
   };
 }
 
@@ -214,7 +222,7 @@ export function FishingDemo() {
 
       try {
         const now = new Date();
-        const realWeather = await fetchSevenDayWeather(location, {
+        const realWeather = await fetchSevenDayWeatherDetailed(location, {
           endpoint: '/api/weather/forecast',
           provider: 'proxy',
         });
@@ -228,11 +236,11 @@ export function FishingDemo() {
           const date = new Date(now);
           date.setDate(now.getDate() + dayOffset);
 
-          const weather = realWeather[dayOffset];
-          if (!weather) {
+          const weatherDay = realWeather[dayOffset];
+          if (!weatherDay || weatherDay.hourlyWeather.length < 24) {
             throw new Error('Incomplete weather series');
           }
-          const payload = buildPayload(location, date, weather);
+          const payload = buildPayload(location, date, weatherDay.weather, weatherDay.hourlyWeather, locale);
           const response = await fetchBiteForecast(apiBaseUrl, payload);
 
           return {
@@ -240,6 +248,7 @@ export function FishingDemo() {
             label: formatDayLabel(date, locale),
             timestamp: date.toISOString(),
             weather: payload.weather,
+            hourlyWeather: payload.hourlyWeather ?? [],
             response,
           } satisfies DayForecast;
         });
@@ -594,6 +603,47 @@ export function FishingDemo() {
             </div>
 
             <div style={{ color: 'var(--text)', lineHeight: 1.45 }}>{selectedDay.response.explanation}</div>
+
+            {selectedDay.response.expanded?.bestWindows && selectedDay.response.expanded.bestWindows.length > 0 ? (
+              <div style={{ display: 'grid', gap: 6 }}>
+                <div style={{ color: 'var(--text-muted)', fontSize: 12 }}>
+                  {locale === 'ru' ? 'Лучшие окна клёва' : 'Best bite windows'}
+                </div>
+                {selectedDay.response.expanded.bestWindows.map((window) => (
+                  <div
+                    key={`${window.from}-${window.to}-${window.peakScore}`}
+                    style={{
+                      borderRadius: 8,
+                      border: '1px solid var(--border)',
+                      background: 'var(--panel)',
+                      padding: '8px 10px',
+                      display: 'grid',
+                      gap: 4,
+                    }}
+                  >
+                    <div style={{ color: 'var(--text)', fontSize: 13, fontWeight: 700 }}>
+                      {new Date(window.from).toLocaleTimeString(locale === 'ru' ? 'ru-RU' : 'en-US', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                      {' - '}
+                      {new Date(window.to).toLocaleTimeString(locale === 'ru' ? 'ru-RU' : 'en-US', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </div>
+                    <div style={{ color: 'var(--text-muted)', fontSize: 12 }}>
+                      {locale === 'ru' ? 'Пик' : 'Peak'}: <strong style={{ color: 'var(--text)' }}>{window.peakScore}</strong>
+                    </div>
+                    {window.tags.length > 0 ? (
+                      <div style={{ color: 'var(--text-muted)', fontSize: 12 }}>
+                        {locale === 'ru' ? 'Теги' : 'Tags'}: {window.tags.join(', ')}
+                      </div>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            ) : null}
 
             <div style={{ color: 'var(--text-muted)', fontSize: 12 }}>{t('click_for_factor_details')}</div>
             <div style={{ display: 'grid', gap: 6 }}>
