@@ -49,8 +49,9 @@ title: API
 - Если валидация неуспешна, контроллер бросает `BadRequestException(parsed.error.flatten())`.
   Это даёт клиенту `400 Bad Request` с деталями, основанными на `.flatten()`.
 - После успешного парсинга контроллер вызывает `ForecastService.calculate(...)`, а сервис делегирует расчёт в `calculateBiteForecast` из `@fishing/domain-bite-forecast`.
-- Текущий контракт запроса не содержит `waterbodyType`: расчёт строится на координате, времени/таймзоне и погодном снимке.
-- Domain-результат возвращает структурированные факторы и `strongestFactorId`; текстовое `explanation` собирается в `ForecastController` как boundary-адаптация под публичный контракт.
+- Текущий контракт запроса не содержит `waterbodyType`: расчёт строится на координате, времени/таймзоне и погодном снимке. Также поддерживаются опциональные поля `hourlyWeather`, `locale` и `debug`.
+- Domain-результат возвращает структурированные факторы и `strongestFactorId`, а также локализованные explainability-строки (`ru`, `en`) и расширенный hourly-блок (`expanded`) для debug-режима.
+- `ForecastController` выбирает итоговую строку `explanation` на boundary-уровне согласно `locale` и возвращает `expanded` только при `debug=true`.
 - Результат обязательно проходит через `biteForecastResponseSchema.parse(...)`.
   Если результат не соответствует публичному контракту, возникает серверная ошибка (в текущей модели — `500`).
 
