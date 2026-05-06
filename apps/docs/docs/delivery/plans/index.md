@@ -84,6 +84,7 @@ delivery/
 
 | Plan ID | Статус | Scope | Сервисы | PLAN | REVIEW |
 |---|---|---|---|---|---|
+| `2026-05-forecast-hourly-solunar-upgrade` | `reviewed` | Обновление расчёта прогноза: почасовая layered-модель (солунар/свет/погодные тренды/сезонность), сохранение дневного индекса и explainability, добавление окон клёва | shared, api, web, docs | `delivery/plans/2026-05-forecast-hourly-solunar-upgrade/PLAN.md` | `delivery/plans/2026-05-forecast-hourly-solunar-upgrade/REVIEW.md` |
 | `2026-05-clean-standards-remediation` | `closed` | Ремедиация по стандартам clean-code/clean-architecture: границы слоёв, контракты, тестовая пирамида | shared, api, web, docs | `delivery/plans/2026-05-clean-standards-remediation/PLAN.md` | `delivery/plans/2026-05-clean-standards-remediation/REVIEW.md` |
 | `2026-05-forecast-production-hardening` | `reviewed` | Доведение прогноза до production-grade, удаление `waterbodyType`, отказ от synthetic fallback в расчёте | shared, api, web, docs | `delivery/plans/2026-05-forecast-production-hardening/PLAN.md` | `delivery/plans/2026-05-forecast-production-hardening/REVIEW.md` |
 | `2026-04-forecast-quality` | `closed` | Улучшение модели прогноза | shared, api, docs | `delivery/plans/2026-04-forecast-quality/PLAN.md` | `delivery/plans/2026-04-forecast-quality/REVIEW.md` |
