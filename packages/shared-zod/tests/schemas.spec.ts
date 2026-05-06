@@ -51,6 +51,56 @@ describe('shared-zod', () => {
     expect(result.success).toBe(false);
   });
 
+  it('accepts extended response payload with hourly debug fields', () => {
+    const start = new Date('2026-04-19T00:00:00.000Z');
+    const hourly = Array.from({ length: 24 }, (_, idx) => {
+      const ts = new Date(start);
+      ts.setUTCHours(start.getUTCHours() + idx);
+      return {
+        timestamp: ts.toISOString(),
+        score: 70,
+        tags: ['solunar'],
+      };
+    });
+
+    const debugBreakdown = Array.from({ length: 24 }, () => ({
+      meteo: 60,
+      kSolunar: 1.2,
+      kLight: 1,
+      kSeason: 1.1,
+      quality: 1,
+    }));
+
+    const result = biteForecastResponseSchema.safeParse({
+      score: 78,
+      level: 'good',
+      confidence: 'high',
+      factors: [{ id: 'pressure', label: 'Стабильное давление', impact: 12 }],
+      explanation: 'Хороший клёв',
+      explanationLocalized: {
+        ru: 'Хороший клёв',
+        en: 'Good bite',
+      },
+      expanded: {
+        dayMaxScore: 82,
+        dayMeanAboveThreshold: 74,
+        bestWindowThreshold: 72,
+        hourly,
+        bestWindows: [
+          {
+            from: hourly[4]?.timestamp,
+            to: hourly[7]?.timestamp,
+            peakScore: 81,
+            tags: ['solunar', 'sunrise'],
+          },
+        ],
+        debugBreakdown,
+      },
+    });
+
+    expect(result.success).toBe(true);
+  });
+
   it('keeps geo bounds constants aligned with schema', () => {
     expect(geoPointSchema.safeParse({ lat: LATITUDE_MIN, lng: LONGITUDE_MIN }).success).toBe(true);
     expect(geoPointSchema.safeParse({ lat: LATITUDE_MAX, lng: LONGITUDE_MAX }).success).toBe(true);

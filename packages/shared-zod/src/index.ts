@@ -29,11 +29,22 @@ export const weatherSnapshotSchema = z.object({
   precipitationMm: z.number().min(WEATHER_PRECIPITATION_MIN).max(WEATHER_PRECIPITATION_MAX),
 });
 
+export const weatherHourlyEntrySchema = weatherSnapshotSchema.extend({
+  timestamp: z.iso.datetime(),
+  windDirectionDeg: z.number().min(0).max(360).optional(),
+  precipitationProbabilityPct: z.number().min(0).max(100).optional(),
+});
+
+export const forecastLocaleSchema = z.enum(['ru', 'en']);
+
 export const biteForecastRequestSchema = z.object({
   point: geoPointSchema,
   timestamp: z.iso.datetime(),
   timezone: z.string().min(1),
   weather: weatherSnapshotSchema,
+  hourlyWeather: z.array(weatherHourlyEntrySchema).min(1).max(72).optional(),
+  locale: forecastLocaleSchema.optional(),
+  debug: z.boolean().optional(),
 });
 
 export const biteForecastLevelSchema = z.enum(['poor', 'moderate', 'good', 'excellent']);
@@ -45,18 +56,57 @@ export const biteForecastFactorSchema = z.object({
   impact: z.number().min(-30).max(30),
 });
 
+export const biteForecastHourlyPointSchema = z.object({
+  timestamp: z.iso.datetime(),
+  score: z.number().min(0).max(100),
+  tags: z.array(z.string().min(1)),
+});
+
+export const biteForecastWindowSchema = z.object({
+  from: z.iso.datetime(),
+  to: z.iso.datetime(),
+  peakScore: z.number().min(0).max(100),
+  tags: z.array(z.string().min(1)),
+});
+
+export const biteForecastDebugBreakdownSchema = z.object({
+  meteo: z.number().min(0).max(100),
+  kSolunar: z.number().min(0).max(2),
+  kLight: z.number().min(0).max(2),
+  kSeason: z.number().min(0).max(2),
+  quality: z.number().min(0).max(1),
+});
+
+export const biteForecastExpandedSchema = z.object({
+  dayMaxScore: z.number().min(0).max(100),
+  dayMeanAboveThreshold: z.number().min(0).max(100),
+  bestWindowThreshold: z.number().min(0).max(100),
+  hourly: z.array(biteForecastHourlyPointSchema).length(24),
+  bestWindows: z.array(biteForecastWindowSchema),
+  debugBreakdown: z.array(biteForecastDebugBreakdownSchema).length(24).optional(),
+});
+
 export const biteForecastResponseSchema = z.object({
   score: z.number().min(0).max(100),
   level: biteForecastLevelSchema,
   confidence: forecastConfidenceSchema,
   factors: z.array(biteForecastFactorSchema).min(1),
   explanation: z.string().min(1),
+  explanationLocalized: z
+    .object({
+      ru: z.string().min(1),
+      en: z.string().min(1),
+    })
+    .optional(),
+  expanded: biteForecastExpandedSchema.optional(),
 });
 
 export type BiteForecastRequest = z.infer<typeof biteForecastRequestSchema>;
 export type BiteForecastResponse = z.infer<typeof biteForecastResponseSchema>;
 export type BiteForecastFactor = z.infer<typeof biteForecastFactorSchema>;
 export type WeatherSnapshot = z.infer<typeof weatherSnapshotSchema>;
+export type WeatherHourlyEntry = z.infer<typeof weatherHourlyEntrySchema>;
 export type GeoPoint = z.infer<typeof geoPointSchema>;
 export type BiteForecastLevel = z.infer<typeof biteForecastLevelSchema>;
 export type ForecastConfidence = z.infer<typeof forecastConfidenceSchema>;
+export type ForecastLocale = z.infer<typeof forecastLocaleSchema>;
