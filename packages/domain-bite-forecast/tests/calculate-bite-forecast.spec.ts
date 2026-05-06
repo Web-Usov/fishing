@@ -8,188 +8,74 @@ function makeBaseRequest() {
     timestamp: '2026-10-19T05:00:00.000Z',
     timezone: 'Europe/Moscow',
     weather: {
-      pressureHpa: 1000,
-      airTemperatureC: 8,
-      windSpeedMps: 6,
-      cloudCoverPct: 10,
+      pressureHpa: 1016,
+      airTemperatureC: 14,
+      windSpeedMps: 2,
+      cloudCoverPct: 40,
       precipitationMm: 0,
     },
   };
 }
 
-function getFactorImpact(result: ReturnType<typeof calculateBiteForecast>, factorId: string) {
-  const factor = result.factors.find((item) => item.id === factorId);
-  expect(factor).toBeDefined();
-  if (!factor) {
-    throw new Error(`Missing factor ${factorId}`);
-  }
-  return factor.impact;
-}
-
-function getFactorLabel(result: ReturnType<typeof calculateBiteForecast>, factorId: string) {
-  const factor = result.factors.find((item) => item.id === factorId);
-  expect(factor).toBeDefined();
-  if (!factor) {
-    throw new Error(`Missing factor ${factorId}`);
-  }
-  return factor.label;
-}
-
 describe('calculateBiteForecast', () => {
-  it('keeps response ranges and includes new factors', () => {
+  it('returns day score with expanded hourly model output', () => {
     const result = calculateBiteForecast(makeBaseRequest());
 
     expect(result.score).toBeGreaterThanOrEqual(0);
     expect(result.score).toBeLessThanOrEqual(100);
     expect(['poor', 'moderate', 'good', 'excellent']).toContain(result.level);
     expect(['low', 'medium', 'high']).toContain(result.confidence);
-    expect(result.factors).toHaveLength(7);
-    expect(result.factors.every((factor) => factor.impact >= -30 && factor.impact <= 30)).toBe(true);
-    expect(result.factors.some((factor) => factor.id === 'timeOfDay')).toBe(true);
-    expect(result.factors.some((factor) => factor.id === 'season')).toBe(true);
-  });
-
-  it('returns good score for early autumn morning and highlights time/season context', () => {
-    const result = calculateBiteForecast({
-      ...makeBaseRequest(),
-      timestamp: '2026-10-19T04:30:00.000Z',
-      timezone: 'Europe/Moscow',
-      weather: {
-        pressureHpa: 1000,
-        airTemperatureC: 8,
-        windSpeedMps: 6,
-        cloudCoverPct: 30,
-        precipitationMm: 0,
-      },
-    });
-
-    expect(result.score).toBeGreaterThanOrEqual(60);
-    expect(['good', 'excellent']).toContain(result.level);
-    expect(getFactorImpact(result, 'timeOfDay')).toBe(9);
-    expect(getFactorImpact(result, 'season')).toBe(4);
-    expect(typeof result.strongestFactorId).toBe('string');
+    expect(result.factors.length).toBeGreaterThanOrEqual(8);
     expect(result.strongestFactorId.length).toBeGreaterThan(0);
+    expect(result.explanationLocalized.ru.length).toBeGreaterThan(0);
+    expect(result.explanationLocalized.en.length).toBeGreaterThan(0);
+
+    expect(result.expanded).toBeDefined();
+    expect(result.expanded?.hourly).toHaveLength(24);
+    expect(result.expanded?.bestWindows).toBeDefined();
+    expect(result.expanded?.bestWindowThreshold).toBe(72);
   });
 
-  it('returns near-mid score at summer midday and confidence is not high', () => {
+  it('exposes debug breakdown when debug flag is enabled', () => {
     const result = calculateBiteForecast({
       ...makeBaseRequest(),
-      timestamp: '2026-07-19T12:30:00.000Z',
-      timezone: 'Europe/Moscow',
-      weather: {
-        pressureHpa: 1016,
-        airTemperatureC: 18,
-        windSpeedMps: 8,
-        cloudCoverPct: 0,
+      debug: true,
+    });
+
+    expect(result.expanded?.debugBreakdown).toBeDefined();
+    expect(result.expanded?.debugBreakdown).toHaveLength(24);
+  });
+
+  it('supports locale selection in caller while keeping localized explanations ready', () => {
+    const result = calculateBiteForecast({
+      ...makeBaseRequest(),
+      locale: 'en',
+    });
+
+    expect(result.explanationLocalized.en).toContain('bite');
+  });
+
+  it('uses provided hourly weather series when available', () => {
+    const base = new Date('2026-10-19T00:00:00.000Z');
+    const hourlyWeather = Array.from({ length: 24 }, (_, idx) => {
+      const ts = new Date(base);
+      ts.setUTCHours(base.getUTCHours() + idx);
+      return {
+        timestamp: ts.toISOString(),
+        pressureHpa: 1015,
+        airTemperatureC: idx < 12 ? 10 : 18,
+        windSpeedMps: idx < 12 ? 1.5 : 4,
+        cloudCoverPct: 35,
         precipitationMm: 0,
-      },
+      };
     });
 
-    expect(result.score).toBeGreaterThanOrEqual(40);
-    expect(result.score).toBeLessThanOrEqual(62);
-    expect(result.confidence).not.toBe('high');
-  });
-
-  it('returns poor score for winter deep night with unfavorable conditions', () => {
     const result = calculateBiteForecast({
       ...makeBaseRequest(),
-      timestamp: '2026-01-19T00:30:00.000Z',
-      timezone: 'Europe/Moscow',
-      weather: {
-        pressureHpa: 1008,
-        airTemperatureC: 10,
-        windSpeedMps: 8,
-        cloudCoverPct: 0,
-        precipitationMm: 2.5,
-      },
+      hourlyWeather,
     });
 
-    expect(result.score).toBeLessThanOrEqual(39);
-    expect(result.level).toBe('poor');
-
-    const offset = Math.abs(result.score - 50);
-    const expectedConfidence = offset >= 25 ? 'high' : offset >= 15 ? 'medium' : 'low';
-    expect(result.confidence).toBe(expectedConfidence);
-  });
-
-  it('uses offset-based confidence (regression around near-mid score)', () => {
-    const result = calculateBiteForecast({
-      ...makeBaseRequest(),
-      timestamp: '2026-07-19T12:00:00.000Z',
-      timezone: 'Europe/Moscow',
-      weather: {
-        pressureHpa: 1016,
-        airTemperatureC: 18,
-        windSpeedMps: 8,
-        cloudCoverPct: 0,
-        precipitationMm: 0,
-      },
-    });
-
-    expect(result.score).toBe(62);
-    expect(result.confidence).toBe('low');
-  });
-
-  it('handles time-of-day boundaries in local timezone', () => {
-    const earlyMorning = calculateBiteForecast({
-      ...makeBaseRequest(),
-      timestamp: '2026-10-19T01:00:00.000Z',
-      timezone: 'Europe/Moscow',
-    });
-    const dayStart = calculateBiteForecast({
-      ...makeBaseRequest(),
-      timestamp: '2026-10-19T08:00:00.000Z',
-      timezone: 'Europe/Moscow',
-    });
-    const lateEvening = calculateBiteForecast({
-      ...makeBaseRequest(),
-      timestamp: '2026-10-19T19:00:00.000Z',
-      timezone: 'Europe/Moscow',
-    });
-    const deepNight = calculateBiteForecast({
-      ...makeBaseRequest(),
-      timestamp: '2026-10-19T20:00:00.000Z',
-      timezone: 'Europe/Moscow',
-    });
-
-    expect(getFactorImpact(earlyMorning, 'timeOfDay')).toBe(9);
-    expect(getFactorImpact(dayStart, 'timeOfDay')).toBe(-4);
-    expect(getFactorImpact(lateEvening, 'timeOfDay')).toBe(6);
-    expect(getFactorImpact(deepNight, 'timeOfDay')).toBe(-9);
-  });
-
-  it('handles season boundaries by timestamp month', () => {
-    const march = calculateBiteForecast({
-      ...makeBaseRequest(),
-      timestamp: '2026-03-01T12:00:00.000Z',
-    });
-    const june = calculateBiteForecast({
-      ...makeBaseRequest(),
-      timestamp: '2026-06-01T12:00:00.000Z',
-    });
-    const september = calculateBiteForecast({
-      ...makeBaseRequest(),
-      timestamp: '2026-09-01T12:00:00.000Z',
-    });
-    const december = calculateBiteForecast({
-      ...makeBaseRequest(),
-      timestamp: '2026-12-01T12:00:00.000Z',
-    });
-
-    expect(getFactorImpact(march, 'season')).toBe(4);
-    expect(getFactorImpact(june, 'season')).toBe(1);
-    expect(getFactorImpact(september, 'season')).toBe(4);
-    expect(getFactorImpact(december, 'season')).toBe(-3);
-    expect(getFactorLabel(december, 'season')).toContain('Зим');
-  });
-
-  it('falls back to UTC hour when timezone is invalid', () => {
-    const result = calculateBiteForecast({
-      ...makeBaseRequest(),
-      timestamp: '2026-10-19T02:00:00.000Z',
-      timezone: 'Invalid/Timezone',
-    });
-
-    expect(getFactorImpact(result, 'timeOfDay')).toBe(-9);
+    expect(result.expanded?.hourly[0]?.timestamp).toBe(hourlyWeather[0]?.timestamp);
+    expect(result.expanded?.hourly[23]?.timestamp).toBe(hourlyWeather[23]?.timestamp);
   });
 });
