@@ -11,6 +11,8 @@ import {
   WEATHER_WIND_SPEED_MIN,
   biteForecastResponseSchema,
   type BiteForecastRequest,
+  type ForecastLocale,
+  type WeatherHourlyEntry,
   type WeatherSnapshot,
 } from '@fishing/shared-zod';
 
@@ -23,6 +25,21 @@ type OpenMeteoDailyResponse = {
     cloud_cover_mean?: number[];
     precipitation_sum?: number[];
   };
+  hourly?: {
+    time?: string[];
+    temperature_2m?: number[];
+    pressure_msl?: number[];
+    wind_speed_10m?: number[];
+    wind_direction_10m?: number[];
+    cloud_cover?: number[];
+    precipitation?: number[];
+    precipitation_probability?: number[];
+  };
+};
+
+export type WeatherDayDetailed = {
+  weather: WeatherSnapshot;
+  hourlyWeather: WeatherHourlyEntry[];
 };
 
 function normalizeWeatherSnapshot(input: WeatherSnapshot): WeatherSnapshot {
@@ -42,7 +59,17 @@ function normalizeWeatherSnapshot(input: WeatherSnapshot): WeatherSnapshot {
 }
 
 export function mapOpenMeteoToWeatherSeries(payload: OpenMeteoDailyResponse): WeatherSnapshot[] | null {
+  const detailed = mapOpenMeteoToWeatherDetailed(payload);
+  if (!detailed) {
+    return null;
+  }
+
+  return detailed.map((item) => item.weather);
+}
+
+export function mapOpenMeteoToWeatherDetailed(payload: OpenMeteoDailyResponse): WeatherDayDetailed[] | null {
   const daily = payload.daily;
+  const hourly = payload.hourly;
   if (!daily) {
     return null;
   }
@@ -60,7 +87,7 @@ export function mapOpenMeteoToWeatherSeries(payload: OpenMeteoDailyResponse): We
     return null;
   }
 
-  const series: WeatherSnapshot[] = [];
+  const series: WeatherDayDetailed[] = [];
   for (let dayOffset = 0; dayOffset < 7; dayOffset += 1) {
     const airTemperatureRaw = daily.temperature_2m_mean?.[dayOffset];
     const pressureRaw = daily.pressure_msl_mean?.[dayOffset];
@@ -84,24 +111,107 @@ export function mapOpenMeteoToWeatherSeries(payload: OpenMeteoDailyResponse): We
     const cloudCoverPct = Number(cloudCoverRaw);
     const precipitationMm = Number(precipitationRaw);
 
-    series.push(
-      normalizeWeatherSnapshot({
-        airTemperatureC,
-        pressureHpa,
-        windSpeedMps,
-        cloudCoverPct,
-        precipitationMm,
-      }),
-    );
+    const dayWeather = normalizeWeatherSnapshot({
+      airTemperatureC,
+      pressureHpa,
+      windSpeedMps,
+      cloudCoverPct,
+      precipitationMm,
+    });
+
+    const hourlyWeather = collectHourlyForDay(dayOffset, hourly, dayWeather);
+    if (!hourlyWeather) {
+      return null;
+    }
+
+    series.push({ weather: dayWeather, hourlyWeather });
   }
 
   return series;
+}
+
+function collectHourlyForDay(
+  dayOffset: number,
+  hourly: OpenMeteoDailyResponse['hourly'],
+  fallback: WeatherSnapshot,
+): WeatherHourlyEntry[] | null {
+  if (!hourly?.time || hourly.time.length === 0) {
+    return buildFallbackHourly(dayOffset, fallback);
+  }
+
+  const result: WeatherHourlyEntry[] = [];
+  const from = dayOffset * 24;
+  const to = from + 24;
+
+  for (let index = from; index < to; index += 1) {
+    const ts = hourly.time[index];
+    const airTemperatureRaw = hourly.temperature_2m?.[index];
+    const pressureRaw = hourly.pressure_msl?.[index];
+    const windSpeedRaw = hourly.wind_speed_10m?.[index];
+    const cloudCoverRaw = hourly.cloud_cover?.[index];
+    const precipitationRaw = hourly.precipitation?.[index];
+    const windDirectionRaw = hourly.wind_direction_10m?.[index];
+    const popRaw = hourly.precipitation_probability?.[index];
+
+    if (
+      !ts ||
+      !Number.isFinite(airTemperatureRaw) ||
+      !Number.isFinite(pressureRaw) ||
+      !Number.isFinite(windSpeedRaw) ||
+      !Number.isFinite(cloudCoverRaw) ||
+      !Number.isFinite(precipitationRaw)
+    ) {
+      return null;
+    }
+
+    const snapshot = normalizeWeatherSnapshot({
+      airTemperatureC: Number(airTemperatureRaw),
+      pressureHpa: Number(pressureRaw),
+      windSpeedMps: Number(windSpeedRaw),
+      cloudCoverPct: Number(cloudCoverRaw),
+      precipitationMm: Number(precipitationRaw),
+    });
+
+    result.push({
+      timestamp: new Date(ts).toISOString(),
+      ...snapshot,
+      windDirectionDeg: Number.isFinite(windDirectionRaw) ? Number(windDirectionRaw) : undefined,
+      precipitationProbabilityPct: Number.isFinite(popRaw) ? Number(popRaw) : undefined,
+    });
+  }
+
+  return result;
+}
+
+function buildFallbackHourly(dayOffset: number, weather: WeatherSnapshot): WeatherHourlyEntry[] {
+  const start = new Date();
+  start.setUTCHours(0, 0, 0, 0);
+  start.setUTCDate(start.getUTCDate() + dayOffset);
+
+  const result: WeatherHourlyEntry[] = [];
+  for (let hour = 0; hour < 24; hour += 1) {
+    const ts = new Date(start);
+    ts.setUTCHours(start.getUTCHours() + hour);
+    result.push({
+      timestamp: ts.toISOString(),
+      ...weather,
+    });
+  }
+  return result;
 }
 
 export async function fetchSevenDayWeather(
   point: { lat: number; lng: number },
   options?: { endpoint?: string; provider?: 'open-meteo' | 'proxy' },
 ): Promise<WeatherSnapshot[] | null> {
+  const detailed = await fetchSevenDayWeatherDetailed(point, options);
+  return detailed ? detailed.map((item) => item.weather) : null;
+}
+
+export async function fetchSevenDayWeatherDetailed(
+  point: { lat: number; lng: number },
+  options?: { endpoint?: string; provider?: 'open-meteo' | 'proxy' },
+): Promise<WeatherDayDetailed[] | null> {
   const endpoint = options?.endpoint ?? 'https://api.open-meteo.com/v1/forecast';
   const provider = options?.provider ?? 'open-meteo';
 
@@ -119,6 +229,15 @@ export async function fetchSevenDayWeather(
             'wind_speed_10m_mean',
             'cloud_cover_mean',
             'precipitation_sum',
+          ].join(','),
+          hourly: [
+            'temperature_2m',
+            'pressure_msl',
+            'wind_speed_10m',
+            'wind_direction_10m',
+            'cloud_cover',
+            'precipitation',
+            'precipitation_probability',
           ].join(','),
         }
       : {
@@ -138,7 +257,7 @@ export async function fetchSevenDayWeather(
   }
 
   const json = (await response.json()) as OpenMeteoDailyResponse;
-  return mapOpenMeteoToWeatherSeries(json);
+  return mapOpenMeteoToWeatherDetailed(json);
 }
 
 export async function fetchBiteForecast(apiBaseUrl: string, payload: BiteForecastRequest) {
@@ -152,4 +271,16 @@ export async function fetchBiteForecast(apiBaseUrl: string, payload: BiteForecas
 
   const json = await response.json();
   return biteForecastResponseSchema.parse(json);
+}
+
+export async function fetchBiteForecastExpanded(
+  apiBaseUrl: string,
+  payload: Omit<BiteForecastRequest, 'debug'>,
+  options?: { locale?: ForecastLocale },
+) {
+  return fetchBiteForecast(apiBaseUrl, {
+    ...payload,
+    locale: options?.locale ?? payload.locale,
+    debug: true,
+  });
 }

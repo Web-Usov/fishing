@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { fetchSevenDayWeather, mapOpenMeteoToWeatherSeries } from '../src/index';
+import { fetchSevenDayWeather, fetchSevenDayWeatherDetailed, mapOpenMeteoToWeatherDetailed, mapOpenMeteoToWeatherSeries } from '../src/index';
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -16,6 +16,16 @@ describe('mapOpenMeteoToWeatherSeries', () => {
         wind_speed_10m_mean: [2, 3, 2, 4, 5, 3, 2],
         cloud_cover_mean: [15, 25, 35, 45, 55, 65, 75],
         precipitation_sum: [0, 0.2, 1.1, 0, 0, 2.4, 0.3],
+      },
+      hourly: {
+        time: Array.from({ length: 24 * 7 }, (_, i) => `2026-04-${String(Math.floor(i / 24) + 1).padStart(2, '0')}T${String(i % 24).padStart(2, '0')}:00`),
+        temperature_2m: Array.from({ length: 24 * 7 }, () => 12),
+        pressure_msl: Array.from({ length: 24 * 7 }, () => 1012),
+        wind_speed_10m: Array.from({ length: 24 * 7 }, () => 3),
+        wind_direction_10m: Array.from({ length: 24 * 7 }, () => 180),
+        cloud_cover: Array.from({ length: 24 * 7 }, () => 45),
+        precipitation: Array.from({ length: 24 * 7 }, () => 0),
+        precipitation_probability: Array.from({ length: 24 * 7 }, () => 20),
       },
     });
 
@@ -44,6 +54,32 @@ describe('mapOpenMeteoToWeatherSeries', () => {
     });
 
     expect(result).toBeNull();
+  });
+
+  it('maps detailed weather series including hourly points', () => {
+    const result = mapOpenMeteoToWeatherDetailed({
+      daily: {
+        time: Array.from({ length: 7 }, (_, i) => `2026-04-0${i + 1}`),
+        temperature_2m_mean: [9, 10, 11, 12, 13, 14, 15],
+        pressure_msl_mean: [1009, 1010, 1011, 1012, 1013, 1014, 1015],
+        wind_speed_10m_mean: [2, 3, 2, 4, 5, 3, 2],
+        cloud_cover_mean: [15, 25, 35, 45, 55, 65, 75],
+        precipitation_sum: [0, 0.2, 1.1, 0, 0, 2.4, 0.3],
+      },
+      hourly: {
+        time: Array.from({ length: 24 * 7 }, (_, i) => `2026-04-${String(Math.floor(i / 24) + 1).padStart(2, '0')}T${String(i % 24).padStart(2, '0')}:00`),
+        temperature_2m: Array.from({ length: 24 * 7 }, () => 12),
+        pressure_msl: Array.from({ length: 24 * 7 }, () => 1012),
+        wind_speed_10m: Array.from({ length: 24 * 7 }, () => 3),
+        wind_direction_10m: Array.from({ length: 24 * 7 }, () => 180),
+        cloud_cover: Array.from({ length: 24 * 7 }, () => 45),
+        precipitation: Array.from({ length: 24 * 7 }, () => 0),
+        precipitation_probability: Array.from({ length: 24 * 7 }, () => 20),
+      },
+    });
+
+    expect(result).not.toBeNull();
+    expect(result?.[0]?.hourlyWeather).toHaveLength(24);
   });
 
   it('returns null for provider non-ok response', async () => {
@@ -87,5 +123,17 @@ describe('mapOpenMeteoToWeatherSeries', () => {
     expect(firstCallUrl).toContain('lng=37.618423');
     expect(firstCallUrl).not.toContain('latitude=');
     expect(firstCallUrl).not.toContain('daily=');
+  });
+
+  it('requests hourly params for open-meteo provider', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({ daily: { time: Array(7).fill('2026-04-01'), temperature_2m_mean: Array(7).fill(10), pressure_msl_mean: Array(7).fill(1010), wind_speed_10m_mean: Array(7).fill(2), cloud_cover_mean: Array(7).fill(20), precipitation_sum: Array(7).fill(0) } }),
+    } as Response);
+
+    await fetchSevenDayWeatherDetailed({ lat: 55.751244, lng: 37.618423 }, { provider: 'open-meteo' });
+
+    const firstCallUrl = String(fetchMock.mock.calls[0]?.[0] ?? '');
+    expect(firstCallUrl).toContain('hourly=');
   });
 });
