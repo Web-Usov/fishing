@@ -26,6 +26,10 @@ describe('ForecastService', () => {
       confidence: 'medium',
       factors: [{ id: 'pressure', label: 'Стабильное давление', impact: 12 }],
       strongestFactorId: 'pressure',
+      explanationLocalized: {
+        ru: 'Хороший клёв: ключевой фактор — стабильное давление.',
+        en: 'Good bite: key factor is stable pressure.',
+      },
     };
 
     const spy = vi.spyOn(domainForecast, 'calculateBiteForecast').mockReturnValue(expected);

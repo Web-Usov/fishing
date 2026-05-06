@@ -20,23 +20,13 @@ export class ForecastController {
     }
 
     const forecast = this.forecastService.calculate(parsed.data);
-    const strongestFactor =
-      forecast.factors.find((factor) => factor.id === forecast.strongestFactorId) ?? forecast.factors[0];
-
-    const explanationPrefix =
-      forecast.level === 'excellent'
-        ? 'Очень активный'
-        : forecast.level === 'good'
-          ? 'Хороший'
-          : forecast.level === 'moderate'
-            ? 'Средний'
-            : 'Слабый';
-
-    const explanation = `${explanationPrefix} клёв: ключевой фактор — ${strongestFactor?.label.toLowerCase() ?? 'условия среды'}.`;
+    const locale = parsed.data.locale ?? 'ru';
+    const explanation = locale === 'en' ? forecast.explanationLocalized.en : forecast.explanationLocalized.ru;
 
     return biteForecastResponseSchema.parse({
       ...forecast,
       explanation,
+      expanded: parsed.data.debug ? forecast.expanded : undefined,
     });
   }
 }

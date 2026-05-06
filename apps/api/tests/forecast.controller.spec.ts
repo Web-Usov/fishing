@@ -36,6 +36,10 @@ describe('ForecastController', () => {
         confidence: 'medium',
         factors: [{ id: 'pressure', label: 'Стабильное давление', impact: 12 }],
         strongestFactorId: 'pressure',
+        explanationLocalized: {
+          ru: 'Хороший клёв: ключевой фактор — стабильное давление.',
+          en: 'Good bite: key factor is stable pressure.',
+        },
       }),
     } as unknown as ForecastService;
 
@@ -50,6 +54,10 @@ describe('ForecastController', () => {
       confidence: 'medium',
       factors: [{ id: 'pressure', label: 'Стабильное давление', impact: 12 }],
       explanation: expect.any(String),
+      explanationLocalized: {
+        ru: expect.any(String),
+        en: expect.any(String),
+      },
     });
   });
 
@@ -61,6 +69,10 @@ describe('ForecastController', () => {
         confidence: 'medium',
         factors: [{ id: 'pressure', label: 'Стабильное давление', impact: 12 }],
         strongestFactorId: 'pressure',
+        explanationLocalized: {
+          ru: 'Хороший клёв',
+          en: 'Good bite',
+        },
       }),
     } as unknown as ForecastService;
 
